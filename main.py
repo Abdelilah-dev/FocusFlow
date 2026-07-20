@@ -69,33 +69,42 @@ is_blocking = False
 print(f"FocusFlow running on: {platform.system()}")
 
 #loops
-while True:
-    now = datetime.now()
-    start_total_minutes = study_total_minutes
-    current_minutes     = (now.hour * 60) + now.minute
-    time_until_start    = start_total_minutes - current_minutes
+try:
+    while True:
+        now = datetime.now()
+        start_total_minutes = study_total_minutes
+        current_minutes     = (now.hour * 60) + now.minute
+        time_until_start    = start_total_minutes - current_minutes
 
-    is_study_time    = is_study_time_active((now.hour * 60) + now.minute, study_total_minutes, end_study_total_minutes)
+        is_study_time    = is_study_time_active((now.hour * 60) + now.minute, study_total_minutes, end_study_total_minutes)
 
         #conditions
-    if 0 < time_until_start <= 10:    
-        if time_until_start % 3 == 0:
-            if last_alert_minute != current_minutes:
-                send_alert(f"Study starts in {time_until_start} minutes!")
-            last_alert_minute = current_minutes
+        if 0 < time_until_start <= 10:    
+            if time_until_start % 3 == 0:
+                if last_alert_minute != current_minutes:
+                    send_alert(f"Study starts in {time_until_start} minutes!")
+                last_alert_minute = current_minutes
 
-    if is_study_time:
-        if not is_blocking:
-            print("\n[!] Time to study! Blocking sites...")
-            unblock_sites()
-            block_sites() 
-            is_blocking = True
-        print(f"It's study time: {now.strftime('%H:%M')} - Focus mode ON!", end="\r")
-    else:
-        if is_blocking:
-            print("\n[!] Study finished! Unblocking sites...")
-            unblock_sites()
-            is_blocking = False
-        print(f"Not study time. Current time: {now.strftime('%H:%M')} enjoy.", end="\r")
+        if is_study_time:
+            if not is_blocking:
+                print("\n[!] Time to study! Blocking sites...")
+                unblock_sites()
+                block_sites() 
+                is_blocking = True
+            print(f"It's study time: {now.strftime('%H:%M')} - Focus mode ON!", end="\r")
+        else:
+            if is_blocking:
+                print("\n[!] Study finished! Unblocking sites...")
+                unblock_sites()
+                is_blocking = False
+            print(f"Not study time. Current time: {now.strftime('%H:%M')} enjoy.", end="\r")
         
-    time.sleep(1)
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    print("\n[!] Program interrupted by user.")
+finally:
+    if is_blocking:
+        print("[!] Cleaning up... Unblocking sites before exit.")
+        unblock_sites()
+    print("[!] FocusFlow stopped. Goodbye!")
