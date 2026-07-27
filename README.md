@@ -76,19 +76,27 @@
 ### Setup & Launch
 
 1. **Clone the repository:**
+   ```bash
    git clone https://github.com/Abdelilah-dev/FocusFlow.git
    cd FocusFlow
+   ```
 
 2. **Install dependencies:**
+   ```bash
    pip install -r requirements.txt
+   ```
 
 3. **Run the Application:**
 
-   - **On Linux** (root privileges required for site blocker):
+   - **On Linux** *(root privileges required for site blocker)*:
+     ```bash
      sudo python3 main.py
+     ```
 
-   - **On Windows** (run CMD/PowerShell as Administrator):
+   - **On Windows** *(run CMD/PowerShell as Administrator)*:
+     ```bash
      python main.py
+     ```
 
 ---
 
