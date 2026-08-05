@@ -70,7 +70,7 @@ class Notification:
                     env["DBUS_SESSION_BUS_ADDRESS"] = self._dbus_address
 
                 icon_path = resource_path("assets", "icons", "app_notify.png")
-				cmd = ["notify-send", "-a", "FocusFlow", "-i", icon_path, "-t", "10000", title, message]
+                cmd = ["notify-send", "-a", "FocusFlow", "-i", icon_path, "-t", "10000", title, message]
 
                 if self._sudo_user and self._sudo_uid:
                     cmd = ["sudo", "-u", self._sudo_user, "-E"] + cmd
@@ -90,7 +90,7 @@ class Notification:
                     title=title,
                     message=message,
                     app_name="FocusFlow",
-		    app_icon=resource_path("assets", "icons", "app_notify.png"),
+                    app_icon=resource_path("assets", "icons", "app_notify.png"),
                     timeout=10
                 )
                 print(f"[Notification] plyer sent successfully")
