@@ -8,7 +8,7 @@
 >
 > Created by **Abdelilah** ([@Abdelilah-dev](https://github.com/Abdelilah-dev))
 
-![FocusFlow](assets/screenshot.png)
+![FocusFlow](assets/FocusFlow.png)
 
 ---
 
