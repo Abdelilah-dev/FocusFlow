@@ -176,7 +176,7 @@ class Blocker:
         elif self._os == "Linux":
             self._block_doh_firewall_linux()
 
-        def _block_doh_firewall_linux(self):
+    def _block_doh_firewall_linux(self):
         rules = [
             "sudo iptables -C OUTPUT -p tcp --dport 853 -j DROP 2>/dev/null || sudo iptables -A OUTPUT -p tcp --dport 853 -j DROP",
             "sudo iptables -C OUTPUT -p udp --dport 853 -j DROP 2>/dev/null || sudo iptables -A OUTPUT -p udp --dport 853 -j DROP",
@@ -192,8 +192,10 @@ class Blocker:
             self._run_cmd(rule)
         try:
             os.makedirs("/etc/iptables", exist_ok=True)
-            self._run_cmd("sudo bash -c 'iptables-save > /etc/iptables/rules.v4'")
-            self._run_cmd("sudo bash -c 'ip6tables-save > /etc/iptables/rules.v6'")
+            with open('/etc/iptables/rules.v4', 'w') as f:
+                subprocess.run(['sudo', 'iptables-save'], stdout=f, check=False)
+            with open('/etc/iptables/rules.v6', 'w') as f:
+                subprocess.run(['sudo', 'ip6tables-save'], stdout=f, check=False)
         except Exception:
             pass
 
@@ -207,7 +209,7 @@ class Blocker:
             self._run_cmd(f'netsh advfirewall firewall delete rule name="{rule_name}"')
             self._run_cmd(f'netsh advfirewall firewall add rule name="{rule_name}" dir=out action=block remoteip={ip}')
 
-        def _flush_dns(self):
+    def _flush_dns(self):
         system = platform.system()
         try:
             if system == "Linux":
