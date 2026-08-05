@@ -69,7 +69,8 @@ class Notification:
                 if self._dbus_address:
                     env["DBUS_SESSION_BUS_ADDRESS"] = self._dbus_address
 
-                cmd = ["notify-send", "-a", "FocusFlow", "-t", "10000", title, message]
+                icon_path = resource_path("assets", "icons", "app_notify.png")
+				cmd = ["notify-send", "-a", "FocusFlow", "-i", icon_path, "-t", "10000", title, message]
 
                 if self._sudo_user and self._sudo_uid:
                     cmd = ["sudo", "-u", self._sudo_user, "-E"] + cmd
