@@ -89,7 +89,7 @@ class Notification:
                     title=title,
                     message=message,
                     app_name="FocusFlow",
-		    app_icon=resource_path("assets", "icons", "app.ico"),
+		    app_icon=resource_path("assets", "icons", "app_notify.png"),
                     timeout=10
                 )
                 print(f"[Notification] plyer sent successfully")
