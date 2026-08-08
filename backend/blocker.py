@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import subprocess
+import time
 from backend.sites import Sites
 
 
@@ -121,7 +122,7 @@ class Blocker:
                 user_js = os.path.join(profile_path, "user.js")
                 try:
                     with open(user_js, "a", encoding="utf-8") as f:
-                        f.write("\n// FocusFlow: Disable DNS-over-HTTPS\n")
+                        f.write("\n")
                         f.write('user_pref("network.trr.mode", 5);\n')
                         f.write('user_pref("network.dns.disablePrefetch", true);\n')
                         f.write('user_pref("network.dns.disablePrefetchFromHTTPS", true);\n')
@@ -224,6 +225,20 @@ class Blocker:
         except Exception:
             pass
 
+    def _restart_brave(self):
+        if self._os != "Linux":
+            return
+        try:
+            subprocess.run(["pkill", "-x", "brave"], check=False)
+            time.sleep(1)
+            subprocess.Popen(
+                ["brave", "--restore-last-session"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+        except Exception:
+            pass
+
     def _disable_all_doh(self):
         if self._doh_disabled:
             return
@@ -253,6 +268,7 @@ class Blocker:
                         s.write(f"127.0.0.1 {sub}{site} # FocusFlow\n")
 
             self._flush_dns()
+            self._restart_brave()
             return True
 
         except PermissionError:
