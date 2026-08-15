@@ -46,7 +46,7 @@ LOGO_Y_OFFSET = 15
 SFX_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "sfx")
 AMBIENCE_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "ambience")
 
-from paths import resource_path, get_asset_path
+from paths import resource_path, get_asset_path, app_data_path
 
 ICONS_DIR = get_asset_path("assets", "icons")
 
@@ -1456,8 +1456,16 @@ class MainWindow(QWidget):
         self.current_popup = Popup(
             self,
             on_save_callback=self.handle_task_saved,
-            existing_tasks=self._get_existing_task_windows()
+            existing_tasks=self._get_existing_task_windows(),
+            existing_names=self._get_existing_task_names()
         )
+
+    def _get_existing_task_names(self, exclude_runner=None):
+        return {
+            r.name_instance.name
+            for r in self.active_runners
+            if r is not exclude_runner
+        }
 
     def _get_existing_task_windows(self, exclude_runner=None):
         windows = []
@@ -1510,7 +1518,8 @@ class MainWindow(QWidget):
             edit_mode=True,
             task_data=task_data,
             on_edit_callback=lambda data: self._on_task_edited(runner, data),
-            existing_tasks=self._get_existing_task_windows(exclude_runner=runner)
+            existing_tasks=self._get_existing_task_windows(exclude_runner=runner),
+            existing_names=self._get_existing_task_names(exclude_runner=runner)
         )
 
     def _view_task(self, runner):
@@ -1579,12 +1588,13 @@ class MainWindow(QWidget):
 
     def _save_task_to_json(self, task_data):
         try:
+            tasks_path = app_data_path("tasks.json")
             tasks = []
-            if os.path.exists("tasks.json"):
-                with open("tasks.json", "r", encoding="utf-8") as f:
+            if os.path.exists(tasks_path):
+                with open(tasks_path, "r", encoding="utf-8") as f:
                     tasks = json.load(f)
             tasks.append(task_data)
-            with open("tasks.json", "w", encoding="utf-8") as f:
+            with open(tasks_path, "w", encoding="utf-8") as f:
                 json.dump(tasks, f, ensure_ascii=False, indent=4)
         except Exception as e:
             print(f"Error saving task: {e}")
@@ -1713,21 +1723,22 @@ class MainWindow(QWidget):
 
     def _delete_task_from_json(self, task_name):
         try:
-            if os.path.exists("tasks.json"):
-                with open("tasks.json", "r", encoding="utf-8") as f:
+            tasks_path = app_data_path("tasks.json")
+            if os.path.exists(tasks_path):
+                with open(tasks_path, "r", encoding="utf-8") as f:
                     tasks = json.load(f)
                 tasks = [t for t in tasks if t.get("name") != task_name]
-                with open("tasks.json", "w", encoding="utf-8") as f:
+                with open(tasks_path, "w", encoding="utf-8") as f:
                     json.dump(tasks, f, ensure_ascii=False, indent=4)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error deleting task: {e}")
 
     def _clear_tasks_json(self):
         try:
-            with open("tasks.json", "w", encoding="utf-8") as f:
+            with open(app_data_path("tasks.json"), "w", encoding="utf-8") as f:
                 json.dump([], f, ensure_ascii=False, indent=4)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error clearing tasks: {e}")
 
     def _reposition_sound_bar(self):
         if hasattr(self, 'sound_bar') and hasattr(self, 'sound_bar_placeholder'):
