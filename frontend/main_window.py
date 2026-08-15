@@ -369,7 +369,7 @@ class TaskCard(QFrame):
         center.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
-        self.name_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self.name_lbl.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
         self.name_lbl.setStyleSheet("background: transparent; border: none;")
         self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
