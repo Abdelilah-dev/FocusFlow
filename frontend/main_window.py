@@ -463,12 +463,14 @@ class TaskCard(QFrame):
             self.setStyleSheet(COLUMN_GRADIENTS.get(self.column_type, COLUMN_GRADIENTS["todo"]))
 
         if state == TaskState.COMPLETED:
-            self.time_lbl.setText("Done")
+            fin = self.runner.time_instance.finalized_at
+            self.time_lbl.setText(fin.strftime("%d/%m/%Y") if fin else "Done")
             self.stop_btn.hide()
             self.done_btn.hide()
             self.refuse_btn.hide()
         elif state == TaskState.REFUSED:
-            self.time_lbl.setText("Refused")
+            fin = self.runner.time_instance.finalized_at
+            self.time_lbl.setText(fin.strftime("%d/%m/%Y") if fin else "Refused")
             self.stop_btn.hide()
             self.done_btn.hide()
             self.refuse_btn.hide()
@@ -1586,6 +1588,7 @@ class MainWindow(QWidget):
         self._refresh_all()
 
     def _serialize_runner(self, runner):
+        fin = runner.time_instance.finalized_at
         return {
             "name": runner.name_instance.name,
             "description": getattr(runner, "description", ""),
@@ -1594,6 +1597,7 @@ class MainWindow(QWidget):
             "sites": getattr(runner, "sites", []),
             "priority": str(runner.priority_instance),
             "state": runner.time_instance.state.name,
+            "finalized_at": fin.isoformat() if fin else None,
         }
 
     def _persist_all_tasks(self):
@@ -1634,9 +1638,12 @@ class MainWindow(QWidget):
                 if saved_state in (TaskState.COMPLETED, TaskState.REFUSED):
                     # tasks lgat 3lihom l7al dyalhom mn 9bl (khls/refused) - khalihom kifma homa
                     time_obj.state = saved_state
+                    fin_str = task_dict.get("finalized_at")
+                    time_obj.finalized_at = datetime.fromisoformat(fin_str) if fin_str else now
                 elif saved_start <= now:
                     # l-wa9t dyalha daz mnin l-app 3amra - tmchi l refused nichan
                     time_obj.state = TaskState.REFUSED
+                    time_obj.finalized_at = now
                 else:
                     # mazal ma jash l-wa9t dyalha - kaykml l-countdown 3la l-wa9t l7a9i9i
                     time_obj.state = TaskState.WAITING
