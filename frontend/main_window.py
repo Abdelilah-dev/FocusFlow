@@ -369,8 +369,8 @@ class TaskCard(QFrame):
         center.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
-        self.name_lbl.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
-        self.name_lbl.setStyleSheet("background: transparent; border: none;")
+        self.name_lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        self.name_lbl.setStyleSheet("background: transparent; border: none; color: #000000;")
         self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
         center.addSpacing(10)
@@ -1120,8 +1120,9 @@ class MainWindow(QWidget):
         self.vol_slider.setRange(0, 100)
         self.vol_slider.setValue(int(self.sound.get_master_volume() * 100))
         self.vol_slider.setStyleSheet(f"""
-            QSlider::groove:horizontal {{ height: 6px; background: {BORDER}; border-radius: 3px; }}
+            QSlider::groove:horizontal {{ height: 6px; background: transparent; border-radius: 3px; }}
             QSlider::sub-page:horizontal {{ background: {ACCENT}; border-radius: 3px; }}
+            QSlider::add-page:horizontal {{ background: transparent; border-radius: 3px; }}
             QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -6px 0; background: {TEXT_PRIMARY}; border-radius: 9px; }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
