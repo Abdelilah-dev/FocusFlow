@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QTimer, QPoint, QSize
 from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont
 from PySide6 import QtSvg
@@ -369,7 +369,7 @@ class TaskCard(QFrame):
         center.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
-        self.name_lbl.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        self.name_lbl.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
         self.name_lbl.setStyleSheet("background: transparent; border: none;")
         self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
@@ -612,6 +612,13 @@ class KanbanColumn(QFrame):
 
     def get_card(self, runner):
         return self.cards.get(runner)
+
+    def sort_cards(self, key_func):
+        ordered = sorted(self.cards.keys(), key=key_func)
+        for runner in ordered:
+            self.cards_layout.removeWidget(self.cards[runner])
+        for runner in ordered:
+            self.cards_layout.insertWidget(self.cards_layout.count() - 1, self.cards[runner])
 
 
 class FocusPanel(QFrame):
@@ -1444,7 +1451,23 @@ class MainWindow(QWidget):
         pass
 
     def show_popup(self):
-        self.current_popup = Popup(self, on_save_callback=self.handle_task_saved)
+        self.current_popup = Popup(
+            self,
+            on_save_callback=self.handle_task_saved,
+            existing_tasks=self._get_existing_task_windows()
+        )
+
+    def _get_existing_task_windows(self, exclude_runner=None):
+        windows = []
+        for r in self.active_runners:
+            if r is exclude_runner:
+                continue
+            if r.time_instance.state in (TaskState.COMPLETED, TaskState.REFUSED):
+                continue
+            start = r.time_instance.start_datetime
+            end = start + timedelta(seconds=r.time_instance.duration_total_seconds)
+            windows.append((start, end, r.name_instance.name))
+        return windows
 
     def handle_task_saved(self, name_obj, time_obj, priority_obj, sites_list):
         self.sound.play_effect("add_task")
@@ -1484,7 +1507,8 @@ class MainWindow(QWidget):
             start_rect=None,
             edit_mode=True,
             task_data=task_data,
-            on_edit_callback=lambda data: self._on_task_edited(runner, data)
+            on_edit_callback=lambda data: self._on_task_edited(runner, data),
+            existing_tasks=self._get_existing_task_windows(exclude_runner=runner)
         )
 
     def _view_task(self, runner):
@@ -1676,6 +1700,9 @@ class MainWindow(QWidget):
             card = target_col.get_card(runner) if target_col else None
             if card:
                 card.refresh()
+
+        self.todo_col.sort_cards(lambda r: r.time_instance.start_datetime)
+        self.inprogress_col.sort_cards(lambda r: r.time_instance.remaining_seconds)
 
         self._pick_focus_task()
         self.focus_panel.update_focus(self.focused_runner)
