@@ -16,9 +16,9 @@ from backend.name import Name
 from backend.timer import Time
 from backend.priority import Priority
 from backend.sites import Sites
-from paths import resource_path, get_asset_path
+from paths import resource_path, get_asset_path, app_data_path
 
-TASKS_FILE = "tasks.json"
+TASKS_FILE = app_data_path("tasks.json")
 
 
 def _resolve_logo_path():
@@ -920,7 +920,7 @@ class AnimatedChip(QFrame):
 
 
 class Popup(QWidget):
-    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False, existing_tasks=None):
+    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False, existing_tasks=None, existing_names=None):
         super().__init__(parent)
         self.on_save_callback = on_save_callback
         self.on_edit_callback = on_edit_callback
@@ -932,6 +932,7 @@ class Popup(QWidget):
         self.selected_priority = "Medium"
         self.sites_helper = Sites()
         self.existing_tasks = existing_tasks or []
+        self.existing_names = existing_names or set()
 
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -1404,7 +1405,14 @@ class Popup(QWidget):
             self.time_error_lbl.show()
             return
 
-        name_obj = Name(self.name_entry.text())
+        typed_name = self.name_entry.text().strip()
+        if not typed_name:
+            n = 1
+            while f"Task {n}" in self.existing_names:
+                n += 1
+            typed_name = f"Task {n}"
+
+        name_obj = Name(typed_name)
 
         priority_obj = Priority(self.selected_priority)
 
