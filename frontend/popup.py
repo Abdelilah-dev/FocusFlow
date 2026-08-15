@@ -1375,10 +1375,11 @@ class Popup(QWidget):
     def _check_time_overlap(self, time_obj):
         new_start = time_obj.start_datetime
         new_end = new_start + timedelta(seconds=time_obj.duration_total_seconds)
+        conflicts = []
         for start, end, name in self.existing_tasks:
             if new_start < end and start < new_end:
-                return name, start, end
-        return None
+                conflicts.append((name, start, end))
+        return conflicts
 
     def save(self):
         self.time_error_lbl.hide()
@@ -1393,13 +1394,13 @@ class Popup(QWidget):
             0
         )
 
-        conflict = self._check_time_overlap(time_obj)
-        if conflict:
-            conflict_name, conflict_start, conflict_end = conflict
-            self.time_error_lbl.setText(
-                f"⚠ Had l-wa9t mchghol b'\"{conflict_name}\" "
-                f"({conflict_start.strftime('%H:%M')} - {conflict_end.strftime('%H:%M')})"
+        conflicts = self._check_time_overlap(time_obj)
+        if conflicts:
+            conflict_text = ", ".join(
+                f"\"{name}\" ({start.strftime('%H:%M')}–{end.strftime('%H:%M')})"
+                for name, start, end in conflicts
             )
+            self.time_error_lbl.setText(f"⏰ Conflicts with {conflict_text} — pick another slot")
             self.time_error_lbl.show()
             return
 
