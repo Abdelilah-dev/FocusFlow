@@ -45,9 +45,7 @@ class Time:
         self._mode_start_time = None    # When current mode started
 
         self._state = TaskState.WAITING
-
-
-    @classmethod
+        self._finalized_at = None
     def from_saved(cls, start_datetime, duration_total_seconds):
         """Rebuild a Time instance for a task restored from disk, keeping its
         exact original start moment (no auto-rollover to 'today'/'tomorrow')."""
@@ -58,6 +56,7 @@ class Time:
         obj._break_time_spent = 0
         obj._mode_start_time = None
         obj._state = TaskState.WAITING
+        obj._finalized_at = None
         return obj
 
 
@@ -195,6 +194,15 @@ class Time:
         return f"{h:02d}:{m:02d}:{s:02d}"
 
     @property
+    def finalized_at(self):
+        """When this task was marked completed or refused (None if still active)."""
+        return self._finalized_at
+
+    @finalized_at.setter
+    def finalized_at(self, value):
+        self._finalized_at = value
+
+    @property
     def formatted_break_time(self) -> str:
         """Countup: how many seconds spent in break."""
         b_sec = self.break_time_spent
@@ -274,11 +282,13 @@ class Time:
                 self._break_time_spent += session
             self._mode_start_time = None
             self._state = TaskState.REFUSED
+            self._finalized_at = datetime.now()
 
     def mark_completed(self):
         """Mark task as completed from PENDING_VALIDATION."""
         if self._state == TaskState.PENDING_VALIDATION:
             self._state = TaskState.COMPLETED
+            self._finalized_at = datetime.now()
 
     def __repr__(self) -> str:
         return (
