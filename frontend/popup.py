@@ -4,6 +4,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import json
+from datetime import timedelta
 from PySide6.QtCore import Qt, QVariantAnimation, QEasingCurve, QRect, QSize
 from PySide6.QtGui import QIntValidator, QPixmap, QColor
 from PySide6.QtWidgets import (
@@ -919,7 +920,7 @@ class AnimatedChip(QFrame):
 
 
 class Popup(QWidget):
-    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False):
+    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False, existing_tasks=None):
         super().__init__(parent)
         self.on_save_callback = on_save_callback
         self.on_edit_callback = on_edit_callback
@@ -930,6 +931,7 @@ class Popup(QWidget):
         self.blocked_sites_list = []
         self.selected_priority = "Medium"
         self.sites_helper = Sites()
+        self.existing_tasks = existing_tasks or []
 
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -1221,6 +1223,14 @@ class Popup(QWidget):
 
         layout.addLayout(time_main_layout)
 
+        self.time_error_lbl = QLabel("")
+        self.time_error_lbl.setWordWrap(True)
+        self.time_error_lbl.setStyleSheet(
+            "color: #FF5555; font-size: 12px; font-weight: bold; background: transparent; border: none;"
+        )
+        self.time_error_lbl.hide()
+        layout.addWidget(self.time_error_lbl)
+
     def _build_sites_section(self, layout):
         lbl = QLabel("🛡️ Blocked Websites")
         lbl.setStyleSheet("color: #CCCCCC; font-size: 13px; font-weight: bold;")
@@ -1362,8 +1372,17 @@ class Popup(QWidget):
             save_btn.clicked.connect(self.save)
         layout.addWidget(save_btn)
 
+    def _check_time_overlap(self, time_obj):
+        new_start = time_obj.start_datetime
+        new_end = new_start + timedelta(seconds=time_obj.duration_total_seconds)
+        for start, end, name in self.existing_tasks:
+            if new_start < end and start < new_end:
+                return name, start, end
+        return None
+
     def save(self):
-        name_obj = Name(self.name_entry.text())
+        self.time_error_lbl.hide()
+        self.time_error_lbl.setText("")
 
         time_obj = Time(
             self.start_hour.get_value(),
@@ -1373,6 +1392,18 @@ class Popup(QWidget):
             self.dur_min.get_value(),
             0
         )
+
+        conflict = self._check_time_overlap(time_obj)
+        if conflict:
+            conflict_name, conflict_start, conflict_end = conflict
+            self.time_error_lbl.setText(
+                f"⚠ Had l-wa9t mchghol b'\"{conflict_name}\" "
+                f"({conflict_start.strftime('%H:%M')} - {conflict_end.strftime('%H:%M')})"
+            )
+            self.time_error_lbl.show()
+            return
+
+        name_obj = Name(self.name_entry.text())
 
         priority_obj = Priority(self.selected_priority)
 
