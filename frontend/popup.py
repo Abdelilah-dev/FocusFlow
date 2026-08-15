@@ -1428,9 +1428,7 @@ class Popup(QWidget):
         }
 
         if self.edit_mode and self.on_edit_callback:
-            update_task_in_json(self.old_name, data)
             self.on_edit_callback(data)
         else:
-            save_task_to_json(data)
             self.on_save_callback(name_obj, time_obj, priority_obj, self.blocked_sites_list)
         self.close()
