@@ -1115,33 +1115,19 @@ class MainWindow(QWidget):
         self.vol_btn.clicked.connect(self._toggle_mute)
         sound_layout.addWidget(self.vol_btn)
 
-        self.vol_track = QFrame()
-        self.vol_track.setFixedSize(144, 14)
-        self.vol_track.setStyleSheet(f"""
-            QFrame {{
-                background-color: {BG_COLUMN};
-                border: 1px solid #FFFFFF;
-                border-radius: 7px;
-            }}
-        """)
-        vol_track_layout = QHBoxLayout(self.vol_track)
-        vol_track_layout.setContentsMargins(2, 2, 2, 2)
-        vol_track_layout.setSpacing(0)
-
         self.vol_slider = QSlider(Qt.Orientation.Horizontal)
-        self.vol_slider.setFixedHeight(10)
-        self.vol_slider.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.vol_slider.setFixedWidth(140)
+        self.vol_slider.setFixedHeight(18)
         self.vol_slider.setRange(0, 100)
         self.vol_slider.setValue(int(self.sound.get_master_volume() * 100))
         self.vol_slider.setStyleSheet(f"""
-            QSlider::groove:horizontal {{ height: 10px; background: {BG_COLUMN}; border: none; border-radius: 5px; }}
-            QSlider::sub-page:horizontal {{ background: {ACCENT}; border-radius: 5px; }}
-            QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border-radius: 5px; }}
-            QSlider::handle:horizontal {{ width: 10px; height: 10px; margin: 0px; background: {TEXT_PRIMARY}; border-radius: 5px; }}
+            QSlider::groove:horizontal {{ height: 8px; background: {BG_COLUMN}; border: none; border-radius: 4px; }}
+            QSlider::sub-page:horizontal {{ background: {ACCENT}; border: none; border-radius: 4px; }}
+            QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border: 1px solid #FFFFFF; border-radius: 4px; }}
+            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border-radius: 9px; }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
-        vol_track_layout.addWidget(self.vol_slider)
-        sound_layout.addWidget(self.vol_track)
+        sound_layout.addWidget(self.vol_slider)
 
         sep = QFrame()
         sep.setFixedSize(1, 36)
