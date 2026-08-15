@@ -1120,7 +1120,7 @@ class MainWindow(QWidget):
         self.vol_slider.setRange(0, 100)
         self.vol_slider.setValue(int(self.sound.get_master_volume() * 100))
         self.vol_slider.setStyleSheet(f"""
-            QSlider::groove:horizontal {{ height: 6px; background: {BG_COLUMN}; border-radius: 3px; }}
+            QSlider::groove:horizontal {{ height: 6px; background: {BG_COLUMN}; border: 1px solid #FFFFFF; border-radius: 3px; }}
             QSlider::sub-page:horizontal {{ background: {ACCENT}; border-radius: 3px; }}
             QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border-radius: 3px; }}
             QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -6px 0; background: {TEXT_PRIMARY}; border-radius: 9px; }}
