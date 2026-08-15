@@ -46,6 +46,8 @@ class Time:
 
         self._state = TaskState.WAITING
         self._finalized_at = None
+
+    @classmethod
     def from_saved(cls, start_datetime, duration_total_seconds):
         """Rebuild a Time instance for a task restored from disk, keeping its
         exact original start moment (no auto-rollover to 'today'/'tomorrow')."""
