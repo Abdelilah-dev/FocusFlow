@@ -6,11 +6,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from datetime import datetime
 from PySide6.QtCore import Qt, QTimer, QPoint, QSize
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont
 from PySide6 import QtSvg
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QFrame, QScrollArea, QSlider, QSystemTrayIcon, QMenu
+    QPushButton, QFrame, QScrollArea, QSlider, QSystemTrayIcon, QMenu, QSizePolicy
 )
 from PySide6.QtGui import QAction
 from backend.timer import TaskState
@@ -181,6 +181,92 @@ COLUMN_GRADIENTS = {
 }
 
 
+class MarqueeLabel(QLabel):
+    """QLabel كيدير scroll تلقائي (من اليمين للشمال) للنص غير إلا كان طويل
+    ماكايدخلش فـ العرض ديالو. إلا كان قصير، كيبان عادي وثابت فـ الوسط."""
+
+    def __init__(self, text="", parent=None, text_color="#000000", speed=45, gap=45):
+        super().__init__(parent)
+        self._full_text = text
+        self._text_color = text_color
+        self._speed = speed   # بيكسل / ثانية
+        self._gap = gap       # المسافة بين كل تكرار للنص
+        self._offset = 0.0
+        self._text_width = 0
+        self._scrolling = False
+        self._last_tick = None
+
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._timer = QTimer(self)
+        self._timer.setInterval(30)
+        self._timer.timeout.connect(self._advance)
+        self.setText(text)
+
+    def setText(self, text):
+        self._full_text = text
+        super().setText(text)
+        self._offset = 0.0
+        self._update_scroll_state()
+
+    def minimumSizeHint(self):
+        return QSize(0, super().sizeHint().height())
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_scroll_state()
+
+    def _update_scroll_state(self):
+        fm = self.fontMetrics()
+        self._text_width = fm.horizontalAdvance(self._full_text)
+        needs_scroll = self.width() > 0 and self._text_width > self.width()
+
+        if needs_scroll and not self._scrolling:
+            self._scrolling = True
+            self._offset = 0.0
+            self._last_tick = None
+            self._timer.start()
+        elif not needs_scroll and self._scrolling:
+            self._scrolling = False
+            self._timer.stop()
+            self._offset = 0.0
+        self.update()
+
+    def _advance(self):
+        import time as _time
+        now = _time.monotonic()
+        if self._last_tick is None:
+            self._last_tick = now
+        dt = now - self._last_tick
+        self._last_tick = now
+
+        loop_length = self._text_width + self._gap
+        if loop_length <= 0:
+            return
+        self._offset = (self._offset + self._speed * dt) % loop_length
+        self.update()
+
+    def paintEvent(self, event):
+        if not self._scrolling:
+            super().paintEvent(event)
+            return
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setFont(self.font())
+        painter.setPen(QColor(self._text_color))
+
+        fm = painter.fontMetrics()
+        y = (self.height() + fm.ascent() - fm.descent()) // 2
+        loop_length = self._text_width + self._gap
+
+        x = -int(self._offset)
+        while x < self.width():
+            painter.drawText(x, y, self._full_text)
+            x += loop_length
+
+        painter.end()
+
+
 class TaskCard(QFrame):
     def __init__(self, runner, on_stop, on_complete, on_refuse, on_edit, on_view, column_type="todo", parent=None):
         super().__init__(parent)
@@ -282,11 +368,10 @@ class TaskCard(QFrame):
         center.setContentsMargins(0, 6, 0, 0)
         center.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.name_lbl = QLabel(self.runner.name_instance.name)
-        self.name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.name_lbl.setStyleSheet(
-            "color: #000000; font-family: 'Segoe UI'; font-size: 16px; font-weight: bold; background: transparent; border: none;"
-        )
+        self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
+        self.name_lbl.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        self.name_lbl.setStyleSheet("background: transparent; border: none;")
+        self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
         center.addSpacing(10)
 
@@ -506,6 +591,7 @@ class KanbanColumn(QFrame):
         scroll = SmoothScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setStyleSheet(f"""
             QScrollArea {{ background: transparent; border: none; }}
             QScrollBar:vertical {{ background: transparent; width: 3px; border-radius: 1px; }}
