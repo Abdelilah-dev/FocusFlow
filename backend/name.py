@@ -1,7 +1,11 @@
+import sys
 import threading
 import json
 import os
 import re
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from paths import app_data_path
 
 
 class Name:
@@ -17,8 +21,9 @@ class Name:
         used_numbers = set()
         
         try:
-            if os.path.exists("tasks.json"):
-                with open("tasks.json", "r", encoding="utf-8") as f:
+            tasks_path = app_data_path("tasks.json")
+            if os.path.exists(tasks_path):
+                with open(tasks_path, "r", encoding="utf-8") as f:
                     tasks = json.load(f)
                 for task in tasks:
                     task_name = task.get("name", "")
