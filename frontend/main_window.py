@@ -910,6 +910,7 @@ class MainWindow(QWidget):
 
         self._init_sound()
         self._build_ui()
+        self._load_saved_tasks()
 
         QTimer.singleShot(0, self._reposition_sound_bar)
         QTimer.singleShot(0, self._reposition_logo)
@@ -1499,6 +1500,7 @@ class MainWindow(QWidget):
         self._update_stats()
         self._update_badges()
         self._pick_focus_task()
+        self._persist_all_tasks()
 
     def _edit_task(self, runner):
         task_data = {
@@ -1547,8 +1549,6 @@ class MainWindow(QWidget):
         from backend.timer import Time
         from backend.priority import Priority
 
-        old_name = runner.name_instance.name
-
         runner.stop()
         for col in [self.todo_col, self.inprogress_col, self.done_col, self.refused_col]:
             if runner in col.cards:
@@ -1578,30 +1578,101 @@ class MainWindow(QWidget):
         else:
             self.done_col.add_card(new_runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
 
-        self._delete_task_from_json(old_name)
-        self._save_task_to_json(new_data)
+        self._persist_all_tasks()
 
         self._update_stats()
         self._update_badges()
         self._pick_focus_task()
         self._refresh_all()
 
-    def _save_task_to_json(self, task_data):
+    def _serialize_runner(self, runner):
+        return {
+            "name": runner.name_instance.name,
+            "description": getattr(runner, "description", ""),
+            "start_datetime": runner.time_instance.start_datetime.isoformat(),
+            "duration_total_seconds": runner.time_instance.duration_total_seconds,
+            "sites": getattr(runner, "sites", []),
+            "priority": str(runner.priority_instance),
+            "state": runner.time_instance.state.name,
+        }
+
+    def _persist_all_tasks(self):
         try:
-            tasks_path = app_data_path("tasks.json")
-            tasks = []
-            if os.path.exists(tasks_path):
-                with open(tasks_path, "r", encoding="utf-8") as f:
-                    tasks = json.load(f)
-            tasks.append(task_data)
-            with open(tasks_path, "w", encoding="utf-8") as f:
+            tasks = [self._serialize_runner(r) for r in self.active_runners]
+            with open(app_data_path("tasks.json"), "w", encoding="utf-8") as f:
                 json.dump(tasks, f, ensure_ascii=False, indent=4)
         except Exception as e:
-            print(f"Error saving task: {e}")
+            print(f"Error persisting tasks: {e}")
+
+    def _load_saved_tasks(self):
+        from backend.name import Name
+        from backend.timer import Time
+        from backend.priority import Priority
+
+        tasks_path = app_data_path("tasks.json")
+        if not os.path.exists(tasks_path):
+            return
+        try:
+            with open(tasks_path, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+        except Exception as e:
+            print(f"Error loading saved tasks: {e}")
+            return
+
+        now = datetime.now()
+        for task_dict in saved:
+            try:
+                saved_start = datetime.fromisoformat(task_dict["start_datetime"])
+                duration_seconds = task_dict.get("duration_total_seconds", 1500)
+                time_obj = Time.from_saved(saved_start, duration_seconds)
+
+                try:
+                    saved_state = TaskState[task_dict.get("state", "WAITING")]
+                except KeyError:
+                    saved_state = TaskState.WAITING
+
+                if saved_state in (TaskState.COMPLETED, TaskState.REFUSED):
+                    # tasks lgat 3lihom l7al dyalhom mn 9bl (khls/refused) - khalihom kifma homa
+                    time_obj.state = saved_state
+                elif saved_start <= now:
+                    # l-wa9t dyalha daz mnin l-app 3amra - tmchi l refused nichan
+                    time_obj.state = TaskState.REFUSED
+                else:
+                    # mazal ma jash l-wa9t dyalha - kaykml l-countdown 3la l-wa9t l7a9i9i
+                    time_obj.state = TaskState.WAITING
+
+                name_obj = Name(task_dict.get("name") or "")
+                priority_obj = Priority(task_dict.get("priority", "Medium"))
+                sites_list = task_dict.get("sites", [])
+
+                runner = TaskRunner(name_obj, time_obj, priority_obj, sites_list, sound_manager=self.sound)
+                runner.description = task_dict.get("description", "")
+                runner.sites = sites_list
+
+                if time_obj.state == TaskState.WAITING:
+                    runner.start()
+
+                self.active_runners.append(runner)
+
+                if time_obj.state == TaskState.WAITING:
+                    self.todo_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+                elif time_obj.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
+                    self.inprogress_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+                elif time_obj.state == TaskState.REFUSED:
+                    self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+                else:
+                    self.done_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+            except Exception as e:
+                print(f"Error restoring task '{task_dict.get('name', '?')}': {e}")
+                continue
+
+        self._update_stats()
+        self._update_badges()
+        self._pick_focus_task()
+        self._persist_all_tasks()
 
     def _stop_task(self, runner):
         self.sound.play_effect("cancel")
-        self._delete_task_from_json(runner.name_instance.name)
         self._timer_done_played.discard(runner)
         runner.stop()
 
@@ -1620,6 +1691,7 @@ class MainWindow(QWidget):
 
         self._update_stats()
         self._update_badges()
+        self._persist_all_tasks()
 
     def _complete_task(self, runner):
         self.sound.play_effect("done")
@@ -1635,7 +1707,6 @@ class MainWindow(QWidget):
 
     def _clear_board(self):
         for runner in list(self.active_runners):
-            self._delete_task_from_json(runner.name_instance.name)
             runner.stop()
         self.active_runners.clear()
         self.task_widgets.clear()
@@ -1646,6 +1717,7 @@ class MainWindow(QWidget):
         self._update_stats()
         self._update_badges()
         self.focus_panel.update_focus(None)
+        self._persist_all_tasks()
 
     def _update_stats(self):
         total = len(self.active_runners)
@@ -1720,25 +1792,7 @@ class MainWindow(QWidget):
         self.focus_panel.update_focus(self.focused_runner)
         self._update_stats()
         self._update_badges()
-
-    def _delete_task_from_json(self, task_name):
-        try:
-            tasks_path = app_data_path("tasks.json")
-            if os.path.exists(tasks_path):
-                with open(tasks_path, "r", encoding="utf-8") as f:
-                    tasks = json.load(f)
-                tasks = [t for t in tasks if t.get("name") != task_name]
-                with open(tasks_path, "w", encoding="utf-8") as f:
-                    json.dump(tasks, f, ensure_ascii=False, indent=4)
-        except Exception as e:
-            print(f"Error deleting task: {e}")
-
-    def _clear_tasks_json(self):
-        try:
-            with open(app_data_path("tasks.json"), "w", encoding="utf-8") as f:
-                json.dump([], f, ensure_ascii=False, indent=4)
-        except Exception as e:
-            print(f"Error clearing tasks: {e}")
+        self._persist_all_tasks()
 
     def _reposition_sound_bar(self):
         if hasattr(self, 'sound_bar') and hasattr(self, 'sound_bar_placeholder'):
@@ -1788,10 +1842,10 @@ class MainWindow(QWidget):
 
         self.refresh_timer.stop()
         self.sound.save()
+        self._persist_all_tasks()
         for runner in self.active_runners:
             runner.stop()
         self.blocker.unblock_sites()
-        self._clear_tasks_json()
         self.tray_icon.hide()
         super().closeEvent(event)
 
