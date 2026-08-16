@@ -23,6 +23,7 @@ class TaskRunner:
         self._stopped = False
         self._threads = []
         self._finished = False
+        self._break_notify_mark = self.time_instance.break_time_spent // 300
 
     def start(self):
         for site in self.sites:
@@ -53,8 +54,13 @@ class TaskRunner:
         while not self._stopped and self.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
             if self.time_instance.state == TaskState.IN_PROGRESS:
                 self.time_instance.tick_focus()
+                self._break_notify_mark = 0
             elif self.time_instance.state == TaskState.BREAK:
                 self.time_instance.tick_break()
+                mark = self.time_instance.break_time_spent // 300
+                if mark > self._break_notify_mark:
+                    self._break_notify_mark = mark
+                    self.notifier.send_alert(f"You've wasted {mark * 5} minutes on break.")
             time_module.sleep(1)
 
         self.blocker.unblock_sites()
