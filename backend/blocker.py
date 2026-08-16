@@ -248,14 +248,19 @@ class Blocker:
         self._block_doh_firewall()
         self._doh_disabled = True
 
-    def block_sites(self):
+    def block_sites(self, sites=None):
+        """Block the given sites. If `sites` is omitted, falls back to the
+        persistent global list (kept only for backward compatibility -
+        callers should always pass the current task's own site list)."""
         try:
             self._disable_all_doh()
             self._create_backup()
             self.unblock_sites()
 
+            sites_to_block = sites if sites is not None else self.sites_instance.sites
+
             with open(self.hosts_path, 'a', encoding='utf-8') as s:
-                for site in self.sites_instance.sites:
+                for site in sites_to_block:
                     s.write(f"0.0.0.0 {site} # FocusFlow\n")
                     s.write(f"127.0.0.1 {site} # FocusFlow\n")
                     s.write(f":: {site} # FocusFlow\n")
