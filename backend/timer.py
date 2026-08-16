@@ -46,6 +46,8 @@ class Time:
 
         self._state = TaskState.WAITING
         self._finalized_at = None
+        self._pending_break_delay = 0
+        self._break_capped = True
 
     @classmethod
     def from_saved(cls, start_datetime, duration_total_seconds):
@@ -59,6 +61,8 @@ class Time:
         obj._mode_start_time = None
         obj._state = TaskState.WAITING
         obj._finalized_at = None
+        obj._pending_break_delay = 0
+        obj._break_capped = True
         return obj
 
 
@@ -241,9 +245,21 @@ class Time:
                 self._state = TaskState.PENDING_VALIDATION
                 # Stay in PENDING_VALIDATION until user clicks done/refuse
 
+    MAX_BREAK_SECONDS = 1800  # 30 minutes
+
+    @property
+    def break_capped(self) -> bool:
+        return self._break_capped
+
+    @break_capped.setter
+    def break_capped(self, value: bool):
+        self._break_capped = bool(value)
+
     def tick_break(self):
-        """Break is count-up; nothing to check here (computed on demand)."""
-        pass
+        """Break is count-up; auto-resume once it hits the 30-minute cap
+        (only for a live/manual break - not one restored after the app was closed)."""
+        if self._state == TaskState.BREAK and self._break_capped and self.break_time_spent >= self.MAX_BREAK_SECONDS:
+            self.resume_focus()
 
     def go_to_break(self):
         """Switch from IN_PROGRESS to BREAK. Finalize focus time."""
@@ -253,15 +269,28 @@ class Time:
                 self._focus_time_spent += session
             self._state = TaskState.BREAK
             self._mode_start_time = datetime.now()
+            self._break_capped = True
 
     def resume_focus(self):
         """Switch from BREAK back to IN_PROGRESS. Finalize break time."""
         if self._state == TaskState.BREAK:
             if self._mode_start_time:
                 session = int((datetime.now() - self._mode_start_time).total_seconds())
+                session = min(session, self.MAX_BREAK_SECONDS)
                 self._break_time_spent += session
+                self._pending_break_delay += session
             self._state = TaskState.IN_PROGRESS
             self._mode_start_time = datetime.now()
+
+    def consume_pending_break_delay(self) -> int:
+        """Return the break time owed to the next task's start, and reset it."""
+        delay = self._pending_break_delay
+        self._pending_break_delay = 0
+        return delay
+
+    def push_start_later(self, seconds: int):
+        """Delay this task's scheduled start by the given number of seconds."""
+        self._start_datetime += timedelta(seconds=seconds)
 
     def toggle_break(self) -> str:
         """Toggle between IN_PROGRESS and BREAK states."""
