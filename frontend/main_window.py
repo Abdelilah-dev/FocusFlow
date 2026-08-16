@@ -1598,6 +1598,7 @@ class MainWindow(QWidget):
             "priority": str(runner.priority_instance),
             "state": runner.time_instance.state.name,
             "finalized_at": fin.isoformat() if fin else None,
+            "break_time_spent": runner.time_instance.break_time_spent,
         }
 
     def _persist_all_tasks(self):
@@ -1640,6 +1641,13 @@ class MainWindow(QWidget):
                     time_obj.state = saved_state
                     fin_str = task_dict.get("finalized_at")
                     time_obj.finalized_at = datetime.fromisoformat(fin_str) if fin_str else now
+                elif saved_state == TaskState.BREAK:
+                    # kant f break (ola f progress w twlat break mnin sdina l-app) - kat-b9a f break
+                    # hta l-user yrj3ha l-focus b-yddo, bla ma yt7sb 3liha l-30min cap
+                    time_obj.state = TaskState.BREAK
+                    time_obj._break_time_spent = task_dict.get("break_time_spent", 0)
+                    time_obj._mode_start_time = now
+                    time_obj.break_capped = False
                 elif saved_start <= now:
                     # l-wa9t dyalha daz mnin l-app 3amra - tmchi l refused nichan
                     time_obj.state = TaskState.REFUSED
@@ -1656,7 +1664,7 @@ class MainWindow(QWidget):
                 runner.description = task_dict.get("description", "")
                 runner.sites = sites_list
 
-                if time_obj.state == TaskState.WAITING:
+                if time_obj.state in (TaskState.WAITING, TaskState.BREAK):
                     runner.start()
 
                 self.active_runners.append(runner)
@@ -1752,6 +1760,18 @@ class MainWindow(QWidget):
                 return
         self.focused_runner = None
 
+    def _delay_next_task(self, current_runner, delay_seconds):
+        upcoming = [
+            r for r in self.active_runners
+            if r is not current_runner
+            and r.time_instance.state == TaskState.WAITING
+            and r.time_instance.start_datetime > current_runner.time_instance.start_datetime
+        ]
+        if not upcoming:
+            return
+        next_runner = min(upcoming, key=lambda r: r.time_instance.start_datetime)
+        next_runner.time_instance.push_start_later(delay_seconds)
+
     def _refresh_all(self):
         for runner in list(self.active_runners):
             state = runner.time_instance.state
@@ -1761,6 +1781,11 @@ class MainWindow(QWidget):
                 runner.time_instance.tick_break()
             elif state == TaskState.WAITING:
                 runner.time_instance.update_status()
+
+        for runner in list(self.active_runners):
+            delay = runner.time_instance.consume_pending_break_delay()
+            if delay > 0:
+                self._delay_next_task(runner, delay)
 
         for runner in list(self.active_runners):
             state = runner.time_instance.state
@@ -1849,6 +1874,10 @@ class MainWindow(QWidget):
 
         self.refresh_timer.stop()
         self.sound.save()
+        for runner in self.active_runners:
+            if runner.time_instance.state == TaskState.IN_PROGRESS:
+                runner.time_instance.go_to_break()
+                runner.time_instance.break_capped = False
         self._persist_all_tasks()
         for runner in self.active_runners:
             runner.stop()
