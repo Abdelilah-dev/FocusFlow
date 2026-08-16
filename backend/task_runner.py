@@ -26,9 +26,6 @@ class TaskRunner:
         self._break_notify_mark = self.time_instance.break_time_spent // 300
 
     def start(self):
-        for site in self.sites:
-            self.blocker.sites_instance.add_site(site)
-
         notif_thread = threading.Thread(target=self.notifier.manage_notif, daemon=True)
         notif_thread.start()
         self._threads.append(notif_thread)
@@ -47,7 +44,7 @@ class TaskRunner:
         if self._stopped:
             return
 
-        blocked_ok = self.blocker.block_sites()
+        blocked_ok = self.blocker.block_sites(self.sites)
         if not blocked_ok:
             self.notifier.send_alert("Couldn't block sites — run FocusFlow as admin.")
 
