@@ -90,7 +90,7 @@ class Notification:
                     title=title,
                     message=message,
                     app_name="FocusFlow",
-                    app_icon=resource_path("assets", "icons", "app_notify.png"),
+                    app_icon=resource_path("assets", "icons", "app.ico"),
                     timeout=10
                 )
                 print(f"[Notification] plyer sent successfully")
@@ -105,35 +105,39 @@ class Notification:
         if self.time_instance.state != TaskState.WAITING:
             return
 
-        start_dt = self.time_instance.start_datetime
-        alert_minutes = self._get_alert_minutes()
-        now = datetime.now()
-
-        upcoming_alerts = []
-        for minutes_left in alert_minutes:
-            alert_time = start_dt - timedelta(minutes=minutes_left)
-            if alert_time > now:
-                upcoming_alerts.append((alert_time, minutes_left))
-
-        upcoming_alerts.sort(key=lambda x: x[0])
-
-        for alert_time, minutes_left in upcoming_alerts:
-            if self._stop:
-                break
-
+        try:
+            start_dt = self.time_instance.start_datetime
+            alert_minutes = self._get_alert_minutes()
             now = datetime.now()
-            if alert_time > now:
-                sleep_seconds = (alert_time - now).total_seconds()
-                while sleep_seconds > 0 and not self._stop:
-                    chunk = min(sleep_seconds, 1.0)
-                    time.sleep(chunk)
-                    sleep_seconds -= chunk
 
-            if self._stop:
-                break
+            upcoming_alerts = []
+            for minutes_left in alert_minutes:
+                alert_time = start_dt - timedelta(minutes=minutes_left)
+                if alert_time > now:
+                    upcoming_alerts.append((alert_time, minutes_left))
 
-            if self.time_instance.state == TaskState.WAITING:
-                self.send_alert(f"{minutes_left} minutes left to start.")
+            upcoming_alerts.sort(key=lambda x: x[0])
 
-        if not self._stop and self.time_instance.state == TaskState.IN_PROGRESS:
-            self.send_alert("Task started! Stay focused.")
+            for alert_time, minutes_left in upcoming_alerts:
+                if self._stop:
+                    break
+
+                now = datetime.now()
+                if alert_time > now:
+                    sleep_seconds = (alert_time - now).total_seconds()
+                    while sleep_seconds > 0 and not self._stop:
+                        chunk = min(sleep_seconds, 1.0)
+                        time.sleep(chunk)
+                        sleep_seconds -= chunk
+
+                if self._stop:
+                    break
+
+                if self.time_instance.state == TaskState.WAITING:
+                    self.send_alert(f"{minutes_left} minutes left to start.")
+
+            if not self._stop and self.time_instance.state == TaskState.IN_PROGRESS:
+                self.send_alert("Task started! Stay focused.")
+
+        except Exception as e:
+            print(f"[Notification] manage_notif crashed unexpectedly: {e}")
