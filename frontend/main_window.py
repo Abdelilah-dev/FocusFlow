@@ -1773,6 +1773,12 @@ class MainWindow(QWidget):
         next_runner.time_instance.push_start_later(delay_seconds)
 
     def _refresh_all(self):
+        try:
+            self._refresh_all_impl()
+        except Exception as e:
+            print(f"[MainWindow] _refresh_all error (will retry next tick): {e}")
+
+    def _refresh_all_impl(self):
         for runner in list(self.active_runners):
             state = runner.time_instance.state
             if state == TaskState.IN_PROGRESS:
