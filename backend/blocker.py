@@ -179,24 +179,24 @@ class Blocker:
 
     def _block_doh_firewall_linux(self):
         rules = [
-            "sudo iptables -C OUTPUT -p tcp --dport 853 -j DROP 2>/dev/null || sudo iptables -A OUTPUT -p tcp --dport 853 -j DROP",
-            "sudo iptables -C OUTPUT -p udp --dport 853 -j DROP 2>/dev/null || sudo iptables -A OUTPUT -p udp --dport 853 -j DROP",
-            "sudo ip6tables -C OUTPUT -p tcp --dport 853 -j DROP 2>/dev/null || sudo ip6tables -A OUTPUT -p tcp --dport 853 -j DROP",
-            "sudo ip6tables -C OUTPUT -p udp --dport 853 -j DROP 2>/dev/null || sudo ip6tables -A OUTPUT -p udp --dport 853 -j DROP",
+            "iptables -C OUTPUT -p tcp --dport 853 -j DROP 2>/dev/null || iptables -A OUTPUT -p tcp --dport 853 -j DROP",
+            "iptables -C OUTPUT -p udp --dport 853 -j DROP 2>/dev/null || iptables -A OUTPUT -p udp --dport 853 -j DROP",
+            "ip6tables -C OUTPUT -p tcp --dport 853 -j DROP 2>/dev/null || ip6tables -A OUTPUT -p tcp --dport 853 -j DROP",
+            "ip6tables -C OUTPUT -p udp --dport 853 -j DROP 2>/dev/null || ip6tables -A OUTPUT -p udp --dport 853 -j DROP",
         ]
         for ip in self.DOH_IPS:
             if ":" in ip:
-                rules.append(f"sudo ip6tables -C OUTPUT -d {ip} -j DROP 2>/dev/null || sudo ip6tables -A OUTPUT -d {ip} -j DROP")
+                rules.append(f"ip6tables -C OUTPUT -d {ip} -j DROP 2>/dev/null || ip6tables -A OUTPUT -d {ip} -j DROP")
             else:
-                rules.append(f"sudo iptables -C OUTPUT -d {ip} -j DROP 2>/dev/null || sudo iptables -A OUTPUT -d {ip} -j DROP")
+                rules.append(f"iptables -C OUTPUT -d {ip} -j DROP 2>/dev/null || iptables -A OUTPUT -d {ip} -j DROP")
         for rule in rules:
             self._run_cmd(rule)
         try:
             os.makedirs("/etc/iptables", exist_ok=True)
             with open('/etc/iptables/rules.v4', 'w') as f:
-                subprocess.run(['sudo', 'iptables-save'], stdout=f, check=False)
+                subprocess.run(['iptables-save'], stdout=f, check=False)
             with open('/etc/iptables/rules.v6', 'w') as f:
-                subprocess.run(['sudo', 'ip6tables-save'], stdout=f, check=False)
+                subprocess.run(['ip6tables-save'], stdout=f, check=False)
         except Exception:
             pass
 
@@ -214,9 +214,9 @@ class Blocker:
         system = platform.system()
         try:
             if system == "Linux":
-                subprocess.run(["sudo", "systemctl", "restart", "systemd-resolved"], check=False, capture_output=True)
-                subprocess.run(["sudo", "systemctl", "restart", "nscd"], check=False, capture_output=True)
-                subprocess.run(["sudo", "resolvectl", "flush-caches"], check=False, capture_output=True)
+                subprocess.run(["systemctl", "restart", "systemd-resolved"], check=False, capture_output=True)
+                subprocess.run(["systemctl", "restart", "nscd"], check=False, capture_output=True)
+                subprocess.run(["resolvectl", "flush-caches"], check=False, capture_output=True)
             elif system == "Darwin":
                 subprocess.run(["dscacheutil", "-flushcache"], check=False, capture_output=True)
                 subprocess.run(["killall", "-HUP", "mDNSResponder"], check=False, capture_output=True)
