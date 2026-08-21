@@ -20,6 +20,8 @@ def main():
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(ICON_APP))
+    app.setApplicationName("FocusFlow")
+    app.setApplicationDisplayName("FocusFlow")
     window = MainWindow()
     window.showMaximized()
     sys.exit(app.exec())
