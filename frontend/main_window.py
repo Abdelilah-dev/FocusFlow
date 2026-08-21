@@ -392,12 +392,17 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        # Right-side frame: reserves layout space AND holds all buttons
+        # Right-side frame: reserves layout space
         right_frame = QFrame()
         right_frame.setFixedSize(44, 76)
         right_frame.setStyleSheet("background: transparent; border: none;")
 
-        self.stop_btn = QPushButton(right_frame)
+        # Stop button: auto-centered via QVBoxLayout (original behavior)
+        stop_layout = QVBoxLayout(right_frame)
+        stop_layout.setContentsMargins(0, 0, 0, 0)
+        stop_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.stop_btn = QPushButton()
         self.stop_btn.setFixedSize(28, 28)
         self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.stop_btn.setStyleSheet("""
@@ -413,8 +418,9 @@ class TaskCard(QFrame):
         """)
         set_icon(self.stop_btn, ICON_CLOSE, 13)
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        self.stop_btn.move(8, 24)
+        stop_layout.addWidget(self.stop_btn)
 
+        # Overlay buttons: manual positioning (user controls X, Y)
         self.done_btn = QPushButton(right_frame)
         self.done_btn.setFixedSize(30, 30)
         self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -431,7 +437,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 13)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(7, 6)
+        self.done_btn.move(10, 6)     # ← X=7, Y=6  (change these as needed)
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
@@ -450,7 +456,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 13)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(7, 40)
+        self.refuse_btn.move(10, 40)  # ← X=7, Y=40 (change these as needed)
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
