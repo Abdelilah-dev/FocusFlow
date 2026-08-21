@@ -434,7 +434,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 12)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(6, -2)    # ← X=6, Y=-2
+        self.done_btn.move(6, 1)    # ← X=6, Y=-2
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
