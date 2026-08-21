@@ -391,27 +391,9 @@ class TaskCard(QFrame):
         content.addLayout(center, stretch=1)
 
         right_col = QVBoxLayout()
-        right_col.setSpacing(8)
-        right_col.setContentsMargins(0, 0, 0, 0)
-        right_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-
-        self.stop_btn = QPushButton()
-        self.stop_btn.setFixedSize(28, 28)
-        self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.stop_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(0, 0, 0, 0.25);
-                border: 1px solid rgba(0, 0, 0, 0.4);
-                border-radius: 14px;
-            }
-            QPushButton:hover {
-                background-color: rgba(231, 76, 60, 0.8);
-                border: 1px solid #E74C3C;
-            }
-        """)
-        set_icon(self.stop_btn, ICON_CLOSE, 13)
-        self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        right_col.addWidget(self.stop_btn)
+        right_col.setSpacing(10)
+        right_col.setContentsMargins(0, 4, 0, 4)
+        right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.done_btn = QPushButton()
         self.done_btn.setFixedSize(35, 35)
@@ -430,7 +412,7 @@ class TaskCard(QFrame):
         set_icon(self.done_btn, ICON_CHECK, 15)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
         self.done_btn.hide()
-        right_col.addWidget(self.done_btn)
+        right_col.addWidget(self.done_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         self.refuse_btn = QPushButton()
         self.refuse_btn.setFixedSize(35, 35)
@@ -449,8 +431,27 @@ class TaskCard(QFrame):
         set_icon(self.refuse_btn, ICON_CLOSE, 15)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
         self.refuse_btn.hide()
-        right_col.addWidget(self.refuse_btn)
+        right_col.addWidget(self.refuse_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
+        self.stop_btn = QPushButton()
+        self.stop_btn.setFixedSize(28, 28)
+        self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.stop_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(0, 0, 0, 0.4);
+                border-radius: 14px;
+            }
+            QPushButton:hover {
+                background-color: rgba(231, 76, 60, 0.8);
+                border: 1px solid #E74C3C;
+            }
+        """)
+        set_icon(self.stop_btn, ICON_CLOSE, 13)
+        self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
+        right_col.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        right_col.addStretch()
         content.addLayout(right_col)
         main.addLayout(content, stretch=1)
 
@@ -1126,8 +1127,8 @@ class MainWindow(QWidget):
         self.vol_slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{ height: 8px; background: {BG_COLUMN}; border: none; border-radius: 4px; }}
             QSlider::sub-page:horizontal {{ background: {ACCENT}; border: none; border-radius: 4px; }}
-            QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border: 1px solid #FFFFFF; border-radius: 4px; }}
-            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border-radius: 9px; }}
+            QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border: none; border-radius: 4px; }}
+            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border: none; border-radius: 9px; }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
         sound_layout.addWidget(self.vol_slider)
@@ -1773,12 +1774,6 @@ class MainWindow(QWidget):
         next_runner.time_instance.push_start_later(delay_seconds)
 
     def _refresh_all(self):
-        try:
-            self._refresh_all_impl()
-        except Exception as e:
-            print(f"[MainWindow] _refresh_all error (will retry next tick): {e}")
-
-    def _refresh_all_impl(self):
         for runner in list(self.active_runners):
             state = runner.time_instance.state
             if state == TaskState.IN_PROGRESS:
