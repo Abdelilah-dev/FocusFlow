@@ -399,12 +399,8 @@ class TaskCard(QFrame):
         right_frame.setFixedSize(44, 76)
         right_frame.setStyleSheet("background: transparent; border: none;")
 
-        # Stop button: auto-centered via QVBoxLayout (original behavior)
-        stop_layout = QVBoxLayout(right_frame)
-        stop_layout.setContentsMargins(0, 0, 0, 0)
-        stop_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.stop_btn = QPushButton()
+        # All buttons: manual positioning (user controls X, Y of each)
+        self.stop_btn = QPushButton(right_frame)
         self.stop_btn.setFixedSize(28, 28)
         self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.stop_btn.setStyleSheet("""
@@ -420,9 +416,8 @@ class TaskCard(QFrame):
         """)
         set_icon(self.stop_btn, ICON_CLOSE, 13)
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        stop_layout.addWidget(self.stop_btn)
+        self.stop_btn.move(8, 11)    # ← X=8, Y=11 (centered - 13px up)
 
-        # Overlay buttons inside right_frame — manual positioning (user controls X, Y)
         self.done_btn = QPushButton(right_frame)
         self.done_btn.setFixedSize(30, 30)
         self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -439,7 +434,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 13)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(7, 3)     # ← X=7, Y=6  (change these as needed)
+        self.done_btn.move(7, -7)    # ← X=7, Y=-7  (3 - 10)
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
@@ -458,7 +453,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 13)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(7, 37)  # ← X=7, Y=40 (change these as needed)
+        self.refuse_btn.move(7, 27)  # ← X=7, Y=27  (37 - 10)
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
