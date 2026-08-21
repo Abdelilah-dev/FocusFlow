@@ -428,23 +428,26 @@ class TaskCard(QFrame):
             self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             self.done_btn.setStyleSheet("""
                 QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(46, 213, 115, 0.40),
-                        stop:1 rgba(46, 213, 115, 0.15));
-                    border: 1.5px solid rgba(46, 213, 115, 0.8);
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(46, 213, 115, 0.25),
+                        stop:0.5 rgba(46, 213, 115, 0.10),
+                        stop:1 rgba(46, 213, 115, 0.25));
+                    border: 1px solid rgba(46, 213, 115, 0.5);
                     border-radius: 13px;
                 }
                 QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(46, 213, 115, 0.90),
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(46, 213, 115, 0.70),
+                        stop:0.5 rgba(46, 213, 115, 0.45),
                         stop:1 rgba(46, 213, 115, 0.70));
-                    border: 1.5px solid rgba(100, 255, 150, 1.0);
+                    border: 1px solid rgba(100, 255, 150, 0.9);
                 }
                 QPushButton:pressed {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(30, 156, 90, 0.95),
-                        stop:1 rgba(30, 156, 90, 0.75));
-                    border: 1.5px solid #1e9c5a;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(30, 156, 90, 0.85),
+                        stop:0.5 rgba(30, 156, 90, 0.60),
+                        stop:1 rgba(30, 156, 90, 0.85));
+                    border: 1px solid rgba(30, 156, 90, 1.0);
                 }
             """)
             set_icon(self.done_btn, ICON_CHECK, 15)
@@ -457,23 +460,26 @@ class TaskCard(QFrame):
             self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             self.refuse_btn.setStyleSheet("""
                 QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(255, 71, 87, 0.40),
-                        stop:1 rgba(255, 71, 87, 0.15));
-                    border: 1.5px solid rgba(255, 71, 87, 0.8);
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(255, 71, 87, 0.25),
+                        stop:0.5 rgba(255, 71, 87, 0.10),
+                        stop:1 rgba(255, 71, 87, 0.25));
+                    border: 1px solid rgba(255, 71, 87, 0.5);
                     border-radius: 13px;
                 }
                 QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(255, 71, 87, 0.90),
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(255, 71, 87, 0.70),
+                        stop:0.5 rgba(255, 71, 87, 0.45),
                         stop:1 rgba(255, 71, 87, 0.70));
-                    border: 1.5px solid rgba(255, 130, 140, 1.0);
+                    border: 1px solid rgba(255, 130, 140, 0.9);
                 }
                 QPushButton:pressed {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 rgba(192, 57, 43, 0.95),
-                        stop:1 rgba(192, 57, 43, 0.75));
-                    border: 1.5px solid #c0392b;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(192, 57, 43, 0.85),
+                        stop:0.5 rgba(192, 57, 43, 0.60),
+                        stop:1 rgba(192, 57, 43, 0.85));
+                    border: 1px solid rgba(192, 57, 43, 1.0);
                 }
             """)
             set_icon(self.refuse_btn, ICON_CLOSE, 15)
@@ -502,8 +508,29 @@ class TaskCard(QFrame):
         callback(self.runner)
 
     def _animate_show(self, btn):
-        """Show button directly — no slide animation"""
+        """Smooth scale-up + fade-in animation"""
+        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
         btn.show()
+        btn.setWindowOpacity(0.0)
+        # Start slightly smaller and transparent
+        r = btn.geometry()
+        center = r.center()
+        start_rect = QRect(center.x() - r.width()//3, center.y() - r.height()//3,
+                          r.width()*2//3, r.height()*2//3)
+        btn.setGeometry(start_rect)
+        # Scale animation
+        self._show_geo = QPropertyAnimation(btn, b"geometry", self)
+        self._show_geo.setDuration(300)
+        self._show_geo.setEasingCurve(QEasingCurve.Type.OutBack)
+        self._show_geo.setStartValue(start_rect)
+        self._show_geo.setEndValue(r)
+        self._show_geo.start()
+        # Fade animation
+        self._show_fade = QPropertyAnimation(btn, b"windowOpacity", self)
+        self._show_fade.setDuration(250)
+        self._show_fade.setStartValue(0.0)
+        self._show_fade.setEndValue(1.0)
+        self._show_fade.start()
 
     def refresh(self):
         state = self.runner.time_instance.state
