@@ -391,8 +391,8 @@ class TaskCard(QFrame):
         content.addLayout(center, stretch=1)
 
         right_col = QVBoxLayout()
-        right_col.setSpacing(10)
-        right_col.setContentsMargins(0, 4, 0, 4)
+        right_col.setSpacing(0)
+        right_col.setContentsMargins(0, 2, 0, 2)
         right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.done_btn = QPushButton()
@@ -414,6 +414,8 @@ class TaskCard(QFrame):
         self.done_btn.hide()
         right_col.addWidget(self.done_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
+        right_col.addSpacing(18)
+
         self.refuse_btn = QPushButton()
         self.refuse_btn.setFixedSize(35, 35)
         self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -432,6 +434,8 @@ class TaskCard(QFrame):
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
         self.refuse_btn.hide()
         right_col.addWidget(self.refuse_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        right_col.addSpacing(18)
 
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedSize(28, 28)
@@ -1125,10 +1129,14 @@ class MainWindow(QWidget):
         self.vol_slider.setRange(0, 100)
         self.vol_slider.setValue(int(self.sound.get_master_volume() * 100))
         self.vol_slider.setStyleSheet(f"""
-            QSlider::groove:horizontal {{ height: 8px; background: {BG_COLUMN}; border: none; border-radius: 4px; }}
-            QSlider::sub-page:horizontal {{ background: {ACCENT}; border: none; border-radius: 4px; }}
-            QSlider::add-page:horizontal {{ background: {BG_COLUMN}; border: none; border-radius: 4px; }}
-            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border: none; border-radius: 9px; }}
+            QSlider {{
+                background: transparent;
+                border: none;
+            }}
+            QSlider::groove:horizontal {{ height: 8px; background: transparent; border: none; border-radius: 4px; }}
+            QSlider::sub-page:horizontal {{ height: 8px; background: {ACCENT}; border: none; border-radius: 4px; }}
+            QSlider::add-page:horizontal {{ height: 8px; background: {BG_COLUMN}; border: none; border-radius: 4px; }}
+            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border: 2px solid {BG_COLUMN}; border-radius: 9px; }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
         sound_layout.addWidget(self.vol_slider)
