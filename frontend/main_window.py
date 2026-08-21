@@ -439,7 +439,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 13)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(7, 6)     # ← X=7, Y=6  (change these as needed)
+        self.done_btn.move(7, 3)     # ← X=7, Y=6  (change these as needed)
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
@@ -458,7 +458,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 13)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(7, 40)  # ← X=7, Y=40 (change these as needed)
+        self.refuse_btn.move(7, 37)  # ← X=7, Y=40 (change these as needed)
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
