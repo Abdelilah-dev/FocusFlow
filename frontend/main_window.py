@@ -419,22 +419,22 @@ class TaskCard(QFrame):
         self.stop_btn.move(8, 11)    # ← X=8, Y=11 (centered - 13px up)
 
         self.done_btn = QPushButton(right_frame)
-        self.done_btn.setFixedSize(32, 22)
+        self.done_btn.setFixedSize(38, 24)
         self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.done_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(46, 213, 115, 0.25);
-                border: 1.5px solid rgba(46, 213, 115, 0.6);
-                border-radius: 8px;
+                border: 2px solid rgba(46, 213, 115, 0.5);
+                border-radius: 12px;
             }
             QPushButton:hover {
                 background-color: #2ed573;
-                border: 1.5px solid #2ed573;
+                border: 2px solid #2ed573;
             }
         """)
-        set_icon(self.done_btn, ICON_CHECK, 12)
+        set_icon(self.done_btn, ICON_CHECK, 14)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(6, 1)    # ← X=6, Y=-2
+        self.done_btn.move(3, 2)    # ← X=6, Y=-2
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
@@ -457,30 +457,16 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 14)
         self.refuse_btn.clicked.connect(lambda: self._animate_click(self.refuse_btn, self.on_refuse))
-        self.refuse_btn.move(3, 30)  # ← X=3, Y=30
+        self.refuse_btn.move(3, 28)  # ← X=3, Y=30
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
         main.addLayout(content, stretch=1)
 
     def _animate_click(self, btn, callback):
-        """Scale down then fade out on click — runs ONCE per click"""
-        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
-        btn.setEnabled(False)
-        # Shrink animation
-        self._click_anim = QPropertyAnimation(btn, b"geometry", self)
-        self._click_anim.setDuration(150)
-        self._click_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
-        r = btn.geometry()
-        center = r.center()
-        self._click_anim.setStartValue(r)
-        self._click_anim.setEndValue(QRect(center.x()-10, center.y()-6, 20, 12))
-        self._click_anim.finished.connect(lambda: self._fade_out(btn, callback))
-        self._click_anim.start()
-
-    def _fade_out(self, btn, callback):
-        """Fade out and call callback — runs ONCE"""
+        """Fade out on click — runs ONCE per click"""
         from PySide6.QtCore import QPropertyAnimation
+        btn.setEnabled(False)
         self._fade_anim = QPropertyAnimation(btn, b"windowOpacity", self)
         self._fade_anim.setDuration(200)
         self._fade_anim.setStartValue(1.0)
@@ -492,44 +478,11 @@ class TaskCard(QFrame):
         btn.hide()
         btn.setWindowOpacity(1.0)
         btn.setEnabled(True)
-        # Reset show flags so next time they appear, animation runs again
-        if btn is self.done_btn:
-            self._done_animated = False
-        elif btn is self.refuse_btn:
-            self._refuse_animated = False
         callback(self.runner)
 
     def _animate_show(self, btn):
-        """Slide in from right + fade in — runs ONCE when button first appears"""
-        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
-        # Check if already animated this session
-        if btn is self.done_btn and getattr(self, '_done_animated', False):
-            btn.show()
-            return
-        if btn is self.refuse_btn and getattr(self, '_refuse_animated', False):
-            btn.show()
-            return
-        # Mark as animated
-        if btn is self.done_btn:
-            self._done_animated = True
-        elif btn is self.refuse_btn:
-            self._refuse_animated = True
-        # Run animation
+        """Show button directly — no slide animation"""
         btn.show()
-        btn.setWindowOpacity(0.0)
-        r = btn.geometry()
-        self._show_anim_geo = QPropertyAnimation(btn, b"geometry", self)
-        self._show_anim_geo.setDuration(250)
-        self._show_anim_geo.setEasingCurve(QEasingCurve.Type.OutBack)
-        self._show_anim_geo.setStartValue(QRect(r.x() + 20, r.y(), r.width(), r.height()))
-        self._show_anim_geo.setEndValue(r)
-        self._show_anim_geo.start()
-        # Fade in parallel
-        self._show_anim_fade = QPropertyAnimation(btn, b"windowOpacity", self)
-        self._show_anim_fade.setDuration(250)
-        self._show_anim_fade.setStartValue(0.0)
-        self._show_anim_fade.setEndValue(1.0)
-        self._show_anim_fade.start()
 
     def refresh(self):
         state = self.runner.time_instance.state
