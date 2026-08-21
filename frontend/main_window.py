@@ -473,7 +473,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 15)
         self.refuse_btn.clicked.connect(lambda: self._animate_click(self.refuse_btn, self.on_refuse))
-        self.refuse_btn.move(2, 27)
+        self.refuse_btn.move(2, 30)
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
