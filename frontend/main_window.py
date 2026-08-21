@@ -438,26 +438,78 @@ class TaskCard(QFrame):
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
-        self.refuse_btn.setFixedSize(32, 22)
+        self.refuse_btn.setFixedSize(38, 24)
         self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.refuse_btn.setStyleSheet("""
             QPushButton {
-                background-color: rgba(255, 71, 87, 0.25);
-                border: 1.5px solid rgba(255, 71, 87, 0.6);
-                border-radius: 8px;
+                background-color: rgba(255, 71, 87, 0.2);
+                border: 2px solid rgba(255, 71, 87, 0.5);
+                border-radius: 12px;
             }
             QPushButton:hover {
-                background-color: #ff4757;
-                border: 1.5px solid #ff4757;
+                background-color: rgba(255, 71, 87, 0.9);
+                border: 2px solid #ff4757;
+            }
+            QPushButton:pressed {
+                background-color: #c0392b;
+                border: 2px solid #c0392b;
             }
         """)
-        set_icon(self.refuse_btn, ICON_CLOSE, 12)
-        self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(6, 32)  # ← X=6, Y=32
+        set_icon(self.refuse_btn, ICON_CLOSE, 14)
+        self.refuse_btn.clicked.connect(lambda: self._animate_click(self.refuse_btn, self.on_refuse))
+        self.refuse_btn.move(3, 30)  # ← X=3, Y=30
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
         main.addLayout(content, stretch=1)
+
+    def _animate_click(self, btn, callback):
+        """Scale down then fade out on click"""
+        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
+        # Shrink animation
+        anim = QPropertyAnimation(btn, b"geometry", self)
+        anim.setDuration(150)
+        anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        r = btn.geometry()
+        center = r.center()
+        anim.setStartValue(r)
+        anim.setEndValue(QRect(center.x()-10, center.y()-6, 20, 12))
+        anim.finished.connect(lambda: self._fade_out(btn, callback))
+        anim.start()
+
+    def _fade_out(self, btn, callback):
+        """Fade out and call callback"""
+        from PySide6.QtCore import QPropertyAnimation
+        anim = QPropertyAnimation(btn, b"windowOpacity", self)
+        anim.setDuration(200)
+        anim.setStartValue(1.0)
+        anim.setEndValue(0.0)
+        anim.finished.connect(lambda: self._after_fade(btn, callback))
+        anim.start()
+
+    def _after_fade(self, btn, callback):
+        btn.hide()
+        btn.setWindowOpacity(1.0)
+        callback(self.runner)
+
+    def _animate_show(self, btn):
+        """Slide in from right + fade in"""
+        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
+        btn.show()
+        btn.setWindowOpacity(0.0)
+        r = btn.geometry()
+        anim = QPropertyAnimation(btn, b"geometry", self)
+        anim.setDuration(250)
+        anim.setEasingCurve(QEasingCurve.Type.OutBack)
+        anim.setStartValue(QRect(r.x() + 20, r.y(), r.width(), r.height()))
+        anim.setEndValue(r)
+        anim.start()
+        # Fade in parallel
+        fade = QPropertyAnimation(btn, b"windowOpacity", self)
+        fade.setDuration(250)
+        fade.setStartValue(0.0)
+        fade.setEndValue(1.0)
+        fade.start()
 
     def refresh(self):
         state = self.runner.time_instance.state
@@ -482,8 +534,8 @@ class TaskCard(QFrame):
         elif state == TaskState.PENDING_VALIDATION:
             self.time_lbl.setText("00:00")
             self.stop_btn.hide()
-            self.done_btn.show()
-            self.refuse_btn.show()
+            self._animate_show(self.done_btn)
+            self._animate_show(self.refuse_btn)
         elif state == TaskState.WAITING:
             diff = int((self.runner.time_instance.start_datetime - datetime.now()).total_seconds())
             if diff > 0:
