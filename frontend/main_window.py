@@ -391,9 +391,14 @@ class TaskCard(QFrame):
         content.addLayout(center, stretch=1)
 
         right_col = QVBoxLayout()
-        right_col.setSpacing(0)
-        right_col.setContentsMargins(0, 2, 0, 2)
-        right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
+        if self.column_type == "todo":
+            right_col.setSpacing(8)
+            right_col.setContentsMargins(0, 0, 0, 0)
+            right_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        else:
+            right_col.setSpacing(0)
+            right_col.setContentsMargins(0, 2, 0, 2)
+            right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.done_btn = QPushButton()
         self.done_btn.setFixedSize(35, 35)
@@ -414,7 +419,8 @@ class TaskCard(QFrame):
         self.done_btn.hide()
         right_col.addWidget(self.done_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        right_col.addSpacing(18)
+        if self.column_type != "todo":
+            right_col.addSpacing(18)
 
         self.refuse_btn = QPushButton()
         self.refuse_btn.setFixedSize(35, 35)
@@ -435,7 +441,8 @@ class TaskCard(QFrame):
         self.refuse_btn.hide()
         right_col.addWidget(self.refuse_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        right_col.addSpacing(18)
+        if self.column_type != "todo":
+            right_col.addSpacing(18)
 
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedSize(28, 28)
@@ -455,7 +462,8 @@ class TaskCard(QFrame):
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
         right_col.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        right_col.addStretch()
+        if self.column_type != "todo":
+            right_col.addStretch()
         content.addLayout(right_col)
         main.addLayout(content, stretch=1)
 
