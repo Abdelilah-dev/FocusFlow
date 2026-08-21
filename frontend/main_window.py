@@ -416,7 +416,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.stop_btn, ICON_CLOSE, 13)
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        self.stop_btn.move(8, 11)    # ← X=8, Y=11 (centered - 13px up)
+        self.stop_btn.move(8, 19)    # ← X=8, Y=11 (centered - 13px up)
 
         self.done_btn = QPushButton(right_frame)
         self.done_btn.setFixedSize(30, 30)
@@ -434,7 +434,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 13)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(7, -7)    # ← X=7, Y=-7  (3 - 10)
+        self.done_btn.move(7, 1)    # ← X=7, Y=-7  (3 - 10)
         self.done_btn.hide()
 
         self.refuse_btn = QPushButton(right_frame)
@@ -453,7 +453,7 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 13)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(7, 27)  # ← X=7, Y=27  (37 - 10)
+        self.refuse_btn.move(7, 35)  # ← X=7, Y=27  (37 - 10)
         self.refuse_btn.hide()
 
         content.addWidget(right_frame)
