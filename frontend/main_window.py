@@ -394,89 +394,94 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        # Right-side frame: reserves layout space AND holds all buttons
-        right_frame = QFrame()
-        right_frame.setFixedSize(44, 76)
-        right_frame.setStyleSheet("background: transparent; border: none;")
+        # Right-side: buttons only for todo/inprogress; done/refused stretch content
+        if self.column_type in ("done", "refused"):
+            # No right frame — content stretches full width
+            self.stop_btn = None
+            self.done_btn = None
+            self.refuse_btn = None
+        else:
+            right_frame = QFrame()
+            right_frame.setFixedSize(44, 76)
+            right_frame.setStyleSheet("background: transparent; border: none;")
 
-        # All buttons: manual positioning (user controls X, Y of each)
-        self.stop_btn = QPushButton(right_frame)
-        self.stop_btn.setFixedSize(28, 28)
-        self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.stop_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(0, 0, 0, 0.25);
-                border: 1px solid rgba(0, 0, 0, 0.4);
-                border-radius: 14px;
-            }
-            QPushButton:hover {
-                background-color: rgba(231, 76, 60, 0.8);
-                border: 1px solid #E74C3C;
-            }
-        """)
-        set_icon(self.stop_btn, ICON_CLOSE, 13)
-        self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        self.stop_btn.move(8, 11)    # ← X=8, Y=11 (centered - 13px up)
+            self.stop_btn = QPushButton(right_frame)
+            self.stop_btn.setFixedSize(28, 28)
+            self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            self.stop_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(0, 0, 0, 0.25);
+                    border: 1px solid rgba(0, 0, 0, 0.4);
+                    border-radius: 14px;
+                }
+                QPushButton:hover {
+                    background-color: rgba(231, 76, 60, 0.8);
+                    border: 1px solid #E74C3C;
+                }
+            """)
+            set_icon(self.stop_btn, ICON_CLOSE, 13)
+            self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
+            self.stop_btn.move(8, 11)
 
-        self.done_btn = QPushButton(right_frame)
-        self.done_btn.setFixedSize(40, 26)
-        self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.done_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(46, 213, 115, 0.40),
-                    stop:1 rgba(46, 213, 115, 0.15));
-                border: 1.5px solid rgba(46, 213, 115, 0.8);
-                border-radius: 13px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(46, 213, 115, 0.90),
-                    stop:1 rgba(46, 213, 115, 0.70));
-                border: 1.5px solid rgba(100, 255, 150, 1.0);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(30, 156, 90, 0.95),
-                    stop:1 rgba(30, 156, 90, 0.75));
-                border: 1.5px solid #1e9c5a;
-            }
-        """)
-        set_icon(self.done_btn, ICON_CHECK, 15)
-        self.done_btn.clicked.connect(lambda: self._animate_click(self.done_btn, self.on_complete))
-        self.done_btn.move(2, 1)
-        self.done_btn.hide()
+            self.done_btn = QPushButton(right_frame)
+            self.done_btn.setFixedSize(40, 26)
+            self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            self.done_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(46, 213, 115, 0.40),
+                        stop:1 rgba(46, 213, 115, 0.15));
+                    border: 1.5px solid rgba(46, 213, 115, 0.8);
+                    border-radius: 13px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(46, 213, 115, 0.90),
+                        stop:1 rgba(46, 213, 115, 0.70));
+                    border: 1.5px solid rgba(100, 255, 150, 1.0);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(30, 156, 90, 0.95),
+                        stop:1 rgba(30, 156, 90, 0.75));
+                    border: 1.5px solid #1e9c5a;
+                }
+            """)
+            set_icon(self.done_btn, ICON_CHECK, 15)
+            self.done_btn.clicked.connect(lambda: self._animate_click(self.done_btn, self.on_complete))
+            self.done_btn.move(2, 1)
+            self.done_btn.hide()
 
-        self.refuse_btn = QPushButton(right_frame)
-        self.refuse_btn.setFixedSize(40, 26)
-        self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.refuse_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(255, 71, 87, 0.40),
-                    stop:1 rgba(255, 71, 87, 0.15));
-                border: 1.5px solid rgba(255, 71, 87, 0.8);
-                border-radius: 13px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(255, 71, 87, 0.90),
-                    stop:1 rgba(255, 71, 87, 0.70));
-                border: 1.5px solid rgba(255, 130, 140, 1.0);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(192, 57, 43, 0.95),
-                    stop:1 rgba(192, 57, 43, 0.75));
-                border: 1.5px solid #c0392b;
-            }
-        """)
-        set_icon(self.refuse_btn, ICON_CLOSE, 15)
-        self.refuse_btn.clicked.connect(lambda: self._animate_click(self.refuse_btn, self.on_refuse))
-        self.refuse_btn.move(2, 30)
-        self.refuse_btn.hide()
+            self.refuse_btn = QPushButton(right_frame)
+            self.refuse_btn.setFixedSize(40, 26)
+            self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            self.refuse_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(255, 71, 87, 0.40),
+                        stop:1 rgba(255, 71, 87, 0.15));
+                    border: 1.5px solid rgba(255, 71, 87, 0.8);
+                    border-radius: 13px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(255, 71, 87, 0.90),
+                        stop:1 rgba(255, 71, 87, 0.70));
+                    border: 1.5px solid rgba(255, 130, 140, 1.0);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 rgba(192, 57, 43, 0.95),
+                        stop:1 rgba(192, 57, 43, 0.75));
+                    border: 1.5px solid #c0392b;
+                }
+            """)
+            set_icon(self.refuse_btn, ICON_CLOSE, 15)
+            self.refuse_btn.clicked.connect(lambda: self._animate_click(self.refuse_btn, self.on_refuse))
+            self.refuse_btn.move(2, 30)
+            self.refuse_btn.hide()
 
-        content.addWidget(right_frame)
+            content.addWidget(right_frame)
         main.addLayout(content, stretch=1)
 
     def _animate_click(self, btn, callback):
@@ -511,15 +516,21 @@ class TaskCard(QFrame):
         if state == TaskState.COMPLETED:
             fin = self.runner.time_instance.finalized_at
             self.time_lbl.setText(fin.strftime("%d/%m/%Y") if fin else "Done")
-            self.stop_btn.hide()
-            self.done_btn.hide()
-            self.refuse_btn.hide()
+            if self.stop_btn:
+                self.stop_btn.hide()
+            if self.done_btn:
+                self.done_btn.hide()
+            if self.refuse_btn:
+                self.refuse_btn.hide()
         elif state == TaskState.REFUSED:
             fin = self.runner.time_instance.finalized_at
             self.time_lbl.setText(fin.strftime("%d/%m/%Y") if fin else "Refused")
-            self.stop_btn.hide()
-            self.done_btn.hide()
-            self.refuse_btn.hide()
+            if self.stop_btn:
+                self.stop_btn.hide()
+            if self.done_btn:
+                self.done_btn.hide()
+            if self.refuse_btn:
+                self.refuse_btn.hide()
         elif state == TaskState.PENDING_VALIDATION:
             self.time_lbl.setText("00:00")
             self.stop_btn.hide()
@@ -535,25 +546,34 @@ class TaskCard(QFrame):
                 self.time_lbl.setText(f"-{h:02d}:{m:02d}")
             else:
                 self.time_lbl.setText("00:00")
-            self.stop_btn.show()
-            self.done_btn.hide()
-            self.refuse_btn.hide()
+            if self.stop_btn:
+                self.stop_btn.show()
+            if self.done_btn:
+                self.done_btn.hide()
+            if self.refuse_btn:
+                self.refuse_btn.hide()
         elif state == TaskState.IN_PROGRESS:
             rem = self.runner.time_instance.remaining_seconds
             m = rem // 60
             s = rem % 60
             self.time_lbl.setText(f"{m:02d}:{s:02d}")
-            self.stop_btn.show()
-            self.done_btn.hide()
-            self.refuse_btn.hide()
+            if self.stop_btn:
+                self.stop_btn.show()
+            if self.done_btn:
+                self.done_btn.hide()
+            if self.refuse_btn:
+                self.refuse_btn.hide()
         elif state == TaskState.BREAK:
             elapsed = self.runner.time_instance.break_elapsed_seconds
             m = elapsed // 60
             s = elapsed % 60
             self.time_lbl.setText(f"{m:02d}:{s:02d}")
-            self.stop_btn.show()
-            self.done_btn.hide()
-            self.refuse_btn.hide()
+            if self.stop_btn:
+                self.stop_btn.show()
+            if self.done_btn:
+                self.done_btn.hide()
+            if self.refuse_btn:
+                self.refuse_btn.hide()
 
 
 class KanbanColumn(QFrame):
