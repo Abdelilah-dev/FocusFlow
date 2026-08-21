@@ -392,15 +392,10 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        # Right-side frame: reserves layout space
-        right_frame = QFrame()
-        right_frame.setFixedSize(44, 76)
-        right_frame.setStyleSheet("background: transparent; border: none;")
-
-        # Stop button: auto-centered via QVBoxLayout (original behavior)
-        stop_layout = QVBoxLayout(right_frame)
-        stop_layout.setContentsMargins(0, 0, 0, 0)
-        stop_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_col = QVBoxLayout()
+        right_col.setSpacing(8)
+        right_col.setContentsMargins(0, 0, 0, 0)
+        right_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedSize(28, 28)
@@ -418,48 +413,47 @@ class TaskCard(QFrame):
         """)
         set_icon(self.stop_btn, ICON_CLOSE, 13)
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        stop_layout.addWidget(self.stop_btn)
+        right_col.addWidget(self.stop_btn)
 
-        # Overlay buttons: manual positioning (user controls X, Y)
-        self.done_btn = QPushButton(right_frame)
-        self.done_btn.setFixedSize(30, 30)
+        self.done_btn = QPushButton()
+        self.done_btn.setFixedSize(35, 35)
         self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.done_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(46, 213, 115, 0.2);
                 border: 1px solid rgba(46, 213, 115, 0.5);
-                border-radius: 15px;
+                border-radius: 14px;
             }
             QPushButton:hover {
                 background-color: #2ed573;
                 border: 1px solid #2ed573;
             }
         """)
-        set_icon(self.done_btn, ICON_CHECK, 13)
+        set_icon(self.done_btn, ICON_CHECK, 15)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
-        self.done_btn.move(10, 6)     # ← X=7, Y=6  (change these as needed)
         self.done_btn.hide()
+        right_col.addWidget(self.done_btn)
 
-        self.refuse_btn = QPushButton(right_frame)
-        self.refuse_btn.setFixedSize(30, 30)
+        self.refuse_btn = QPushButton()
+        self.refuse_btn.setFixedSize(35, 35)
         self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.refuse_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(255, 71, 87, 0.2);
                 border: 1px solid rgba(255, 71, 87, 0.5);
-                border-radius: 15px;
+                border-radius: 14px;
             }
             QPushButton:hover {
                 background-color: #ff4757;
                 border: 1px solid #ff4757;
             }
         """)
-        set_icon(self.refuse_btn, ICON_CLOSE, 13)
+        set_icon(self.refuse_btn, ICON_CLOSE, 15)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
-        self.refuse_btn.move(10, 40)  # ← X=7, Y=40 (change these as needed)
         self.refuse_btn.hide()
+        right_col.addWidget(self.refuse_btn)
 
-        content.addWidget(right_frame)
+        content.addLayout(right_col)
         main.addLayout(content, stretch=1)
 
     def refresh(self):
