@@ -35,49 +35,44 @@ class TaskRunner:
         self._threads.append(watcher_thread)
 
     def _watch_task(self):
-        try:
-            while not self._stopped and self.time_instance.state == TaskState.WAITING:
-                self.time_instance.update_status()
-                if self.time_instance.state != TaskState.WAITING:
-                    break
-                time_module.sleep(1)
+        while not self._stopped and self.time_instance.state == TaskState.WAITING:
+            self.time_instance.update_status()
+            if self.time_instance.state != TaskState.WAITING:
+                break
+            time_module.sleep(1)
 
-            if self._stopped:
-                return
+        if self._stopped:
+            return
 
-            try:
-                blocked_ok = self.blocker.block_sites(self.sites)
-            except Exception as e:
-                blocked_ok = False
-                print(f"[TaskRunner] block_sites error: {e}")
-            if not blocked_ok:
-                self.notifier.send_alert("Couldn't block sites — run FocusFlow as admin.")
+        blocked_ok = self.blocker.block_sites(self.sites)
+        if not blocked_ok:
+            self.notifier.send_alert("Couldn't block sites — run FocusFlow as admin.")
 
-            while not self._stopped and self.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
-                if self.time_instance.state == TaskState.IN_PROGRESS:
-                    self.time_instance.tick_focus()
-                    self._break_notify_mark = 0
-                elif self.time_instance.state == TaskState.BREAK:
-                    self.time_instance.tick_break()
-                    mark = self.time_instance.break_time_spent // 300
-                    if mark > self._break_notify_mark:
-                        self._break_notify_mark = mark
-                        self.notifier.send_alert(f"You've wasted {mark * 5} minutes on break.")
-                time_module.sleep(1)
+        while not self._stopped and self.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
+            if self.time_instance.state == TaskState.IN_PROGRESS:
+                self.time_instance.tick_focus()
+                self._break_notify_mark = 0
+            elif self.time_instance.state == TaskState.BREAK:
+                prev_state = self.time_instance.state
+                self.time_instance.tick_break()
+                
+                # Notify when max break time reached and auto-resumed
+                if prev_state == TaskState.BREAK and self.time_instance.state == TaskState.IN_PROGRESS:
+                    self.notifier.send_alert("Maximum break time reached (30 min). Focus resumed automatically.")
+                mark = self.time_instance.break_time_spent // 300
+                if mark > self._break_notify_mark:
+                    self._break_notify_mark = mark
+                    self.notifier.send_alert(f"You've wasted {mark * 5} minutes on break.")
+            time_module.sleep(1)
 
-            if not self._stopped and self.time_instance.state == TaskState.PENDING_VALIDATION:
-                print(f"[TaskRunner] Task finished, sending notification...")
-                self.notifier.send_alert(f"{self.name_instance.name} finished. Take a break!")
-                print(f"[TaskRunner] Notification sent.")
+        self.blocker.unblock_sites()
 
-        except Exception as e:
-            print(f"[TaskRunner] _watch_task crashed unexpectedly: {e}")
-        finally:
-            try:
-                self.blocker.unblock_sites()
-            except Exception as e:
-                print(f"[TaskRunner] unblock_sites error during cleanup: {e}")
-            self._finished = True
+        if not self._stopped and self.time_instance.state == TaskState.PENDING_VALIDATION:
+            print(f"[TaskRunner] Task finished, sending notification...")
+            self.notifier.send_alert(f"{self.name_instance.name} finished. Take a break!")
+            print(f"[TaskRunner] Notification sent.")
+
+        self._finished = True
 
     def stop(self):
         self._stopped = True
