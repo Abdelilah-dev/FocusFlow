@@ -390,17 +390,13 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        right_col = QVBoxLayout()
-        if self.column_type == "todo":
-            right_col.setSpacing(8)
-            right_col.setContentsMargins(0, 0, 0, 0)
-            right_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        else:
-            right_col.setSpacing(0)
-            right_col.setContentsMargins(0, 2, 0, 2)
-            right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
+        # Right-side button container with absolute positioning
+        # so each button has independent (x, y) control
+        right_frame = QFrame()
+        right_frame.setFixedSize(44, 76)
+        right_frame.setStyleSheet("background: transparent; border: none;")
 
-        self.done_btn = QPushButton()
+        self.done_btn = QPushButton(right_frame)
         self.done_btn.setFixedSize(35, 35)
         self.done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.done_btn.setStyleSheet("""
@@ -416,13 +412,10 @@ class TaskCard(QFrame):
         """)
         set_icon(self.done_btn, ICON_CHECK, 15)
         self.done_btn.clicked.connect(lambda: self.on_complete(self.runner))
+        self.done_btn.move(4, 6)   # ← Y = 6 (customize per button)
         self.done_btn.hide()
-        right_col.addWidget(self.done_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        if self.column_type != "todo":
-            right_col.addSpacing(18)
-
-        self.refuse_btn = QPushButton()
+        self.refuse_btn = QPushButton(right_frame)
         self.refuse_btn.setFixedSize(35, 35)
         self.refuse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.refuse_btn.setStyleSheet("""
@@ -438,13 +431,10 @@ class TaskCard(QFrame):
         """)
         set_icon(self.refuse_btn, ICON_CLOSE, 15)
         self.refuse_btn.clicked.connect(lambda: self.on_refuse(self.runner))
+        self.refuse_btn.move(4, 40)  # ← Y = 40 (customize per button)
         self.refuse_btn.hide()
-        right_col.addWidget(self.refuse_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        if self.column_type != "todo":
-            right_col.addSpacing(18)
-
-        self.stop_btn = QPushButton()
+        self.stop_btn = QPushButton(right_frame)
         self.stop_btn.setFixedSize(28, 28)
         self.stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.stop_btn.setStyleSheet("""
@@ -460,11 +450,9 @@ class TaskCard(QFrame):
         """)
         set_icon(self.stop_btn, ICON_CLOSE, 13)
         self.stop_btn.clicked.connect(lambda: self.on_stop(self.runner))
-        right_col.addWidget(self.stop_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.stop_btn.move(8, 24)  # ← Y = 24 (centered in 76px card)
 
-        if self.column_type != "todo":
-            right_col.addStretch()
-        content.addLayout(right_col)
+        content.addWidget(right_frame)
         main.addLayout(content, stretch=1)
 
     def refresh(self):
