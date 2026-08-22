@@ -189,8 +189,8 @@ class MarqueeLabel(QLabel):
         super().__init__(parent)
         self._full_text = text
         self._text_color = text_color
-        self._speed = speed   # بيكسل / ثانية
-        self._gap = gap       # المسافة بين كل تكرار للنص
+        self._speed = speed
+        self._gap = gap
         self._offset = 0.0
         self._text_width = 0
         self._scrolling = False
@@ -280,10 +280,6 @@ class TaskCard(QFrame):
         self.setFixedHeight(76)
         self.setStyleSheet(COLUMN_GRADIENTS.get(column_type, COLUMN_GRADIENTS["todo"]))
         self._build_ui()
-
-
-
-
 
     def _build_ui(self):
         main = QHBoxLayout(self)
@@ -394,9 +390,7 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        # Right-side: buttons only for todo/inprogress; done/refused stretch content
         if self.column_type in ("done", "refused"):
-            # No right frame — content stretches full width
             self.stop_btn = None
             self.done_btn = None
             self.refuse_btn = None
@@ -491,7 +485,6 @@ class TaskCard(QFrame):
         main.addLayout(content, stretch=1)
 
     def _animate_click(self, btn, callback):
-        """Fade out on click — runs ONCE per click"""
         from PySide6.QtCore import QPropertyAnimation
         btn.setEnabled(False)
         self._fade_anim = QPropertyAnimation(btn, b"windowOpacity", self)
@@ -508,24 +501,20 @@ class TaskCard(QFrame):
         callback(self.runner)
 
     def _animate_show(self, btn):
-        """Smooth scale-up + fade-in animation"""
         from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect
         btn.show()
         btn.setWindowOpacity(0.0)
-        # Start slightly smaller and transparent
         r = btn.geometry()
         center = r.center()
         start_rect = QRect(center.x() - r.width()//3, center.y() - r.height()//3,
                           r.width()*2//3, r.height()*2//3)
         btn.setGeometry(start_rect)
-        # Scale animation
         self._show_geo = QPropertyAnimation(btn, b"geometry", self)
         self._show_geo.setDuration(300)
         self._show_geo.setEasingCurve(QEasingCurve.Type.OutBack)
         self._show_geo.setStartValue(start_rect)
         self._show_geo.setEndValue(r)
         self._show_geo.start()
-        # Fade animation
         self._show_fade = QPropertyAnimation(btn, b"windowOpacity", self)
         self._show_fade.setDuration(250)
         self._show_fade.setStartValue(0.0)
@@ -1223,10 +1212,61 @@ class MainWindow(QWidget):
                 background: transparent;
                 border: none;
             }}
-            QSlider::groove:horizontal {{ height: 8px; background: transparent; border: none; border-radius: 4px; }}
-            QSlider::sub-page:horizontal {{ height: 8px; background: {ACCENT}; border: none; border-radius: 4px; }}
-            QSlider::add-page:horizontal {{ height: 8px; background: {BG_COLUMN}; border: none; border-radius: 4px; }}
-            QSlider::handle:horizontal {{ width: 18px; height: 18px; margin: -5px 0; background: {TEXT_PRIMARY}; border: 2px solid {BG_COLUMN}; border-radius: 9px; }}
+
+            /* الشريط الأساسي */
+            QSlider::groove:horizontal {{
+                height: 6px;
+                background: #1a1a1a;
+                border: 1px solid #2a2a2a;
+                border-radius: 3px;
+            }}
+
+            /* الجزء الممتلئ — الأصفر المتدرج */
+            QSlider::sub-page:horizontal {{
+                height: 6px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #FF8C00,
+                    stop:1 #FFB300);
+                border: none;
+                border-radius: 3px;
+            }}
+
+            /* الجزء الفارغ */
+            QSlider::add-page:horizontal {{
+                height: 6px;
+                background: #141414;
+                border: none;
+                border-radius: 3px;
+            }}
+
+            /* المقبض الدائري */
+            QSlider::handle:horizontal {{
+                width: 16px;
+                height: 16px;
+                margin: -6px 0;
+                background: qradialgradient(cx:0.5, cy:0.5, radius:0.5,
+                    stop:0 #ffffff,
+                    stop:0.7 #e0e0e0,
+                    stop:1 #888888);
+                border: 2px solid #FFB300;
+                border-radius: 8px;
+            }}
+
+            /* المقبض عند المرور */
+            QSlider::handle:horizontal:hover {{
+                background: #ffffff;
+                border: 2px solid #FF8C00;
+                width: 18px;
+                height: 18px;
+                margin: -7px 0;
+                border-radius: 9px;
+            }}
+
+            /* المقبض عند الضغط */
+            QSlider::handle:horizontal:pressed {{
+                background: #FFB300;
+                border: 2px solid #FF8C00;
+            }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
         sound_layout.addWidget(self.vol_slider)
@@ -1736,23 +1776,18 @@ class MainWindow(QWidget):
                     saved_state = TaskState.WAITING
 
                 if saved_state in (TaskState.COMPLETED, TaskState.REFUSED):
-                    # tasks lgat 3lihom l7al dyalhom mn 9bl (khls/refused) - khalihom kifma homa
                     time_obj.state = saved_state
                     fin_str = task_dict.get("finalized_at")
                     time_obj.finalized_at = datetime.fromisoformat(fin_str) if fin_str else now
                 elif saved_state == TaskState.BREAK:
-                    # kant f break (ola f progress w twlat break mnin sdina l-app) - kat-b9a f break
-                    # hta l-user yrj3ha l-focus b-yddo, bla ma yt7sb 3liha l-30min cap
                     time_obj.state = TaskState.BREAK
                     time_obj._break_time_spent = task_dict.get("break_time_spent", 0)
                     time_obj._mode_start_time = now
                     time_obj.break_capped = False
                 elif saved_start <= now:
-                    # l-wa9t dyalha daz mnin l-app 3amra - tmchi l refused nichan
                     time_obj.state = TaskState.REFUSED
                     time_obj.finalized_at = now
                 else:
-                    # mazal ma jash l-wa9t dyalha - kaykml l-countdown 3la l-wa9t l7a9i9i
                     time_obj.state = TaskState.WAITING
 
                 name_obj = Name(task_dict.get("name") or "")
@@ -1870,123 +1905,3 @@ class MainWindow(QWidget):
             return
         next_runner = min(upcoming, key=lambda r: r.time_instance.start_datetime)
         next_runner.time_instance.push_start_later(delay_seconds)
-
-    def _refresh_all(self):
-        for runner in list(self.active_runners):
-            state = runner.time_instance.state
-            if state == TaskState.IN_PROGRESS:
-                runner.time_instance.tick_focus()
-            elif state == TaskState.BREAK:
-                runner.time_instance.tick_break()
-            elif state == TaskState.WAITING:
-                runner.time_instance.update_status()
-
-        for runner in list(self.active_runners):
-            delay = runner.time_instance.consume_pending_break_delay()
-            if delay > 0:
-                self._delay_next_task(runner, delay)
-
-        for runner in list(self.active_runners):
-            state = runner.time_instance.state
-
-            if state == TaskState.PENDING_VALIDATION and runner not in self._timer_done_played:
-                self.sound.play_effect("timer_done")
-                self._timer_done_played.add(runner)
-
-            current_col = None
-            for col in [self.todo_col, self.inprogress_col, self.done_col, self.refused_col]:
-                if runner in col.cards:
-                    current_col = col
-                    break
-
-            if state == TaskState.WAITING:
-                target_col = self.todo_col
-            elif state in (TaskState.IN_PROGRESS, TaskState.BREAK, TaskState.PENDING_VALIDATION):
-                target_col = self.inprogress_col
-            elif state == TaskState.REFUSED:
-                target_col = self.refused_col
-            else:
-                target_col = self.done_col
-
-            if current_col != target_col and current_col is not None:
-                current_col.remove_card(runner)
-                target_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
-
-            card = target_col.get_card(runner) if target_col else None
-            if card:
-                card.refresh()
-
-        self.todo_col.sort_cards(lambda r: r.time_instance.start_datetime)
-        self.inprogress_col.sort_cards(lambda r: r.time_instance.remaining_seconds)
-
-        self._pick_focus_task()
-        self.focus_panel.update_focus(self.focused_runner)
-        self._update_stats()
-        self._update_badges()
-        self._persist_all_tasks()
-
-    def _reposition_sound_bar(self):
-        if hasattr(self, 'sound_bar') and hasattr(self, 'sound_bar_placeholder'):
-            pos = self.sound_bar_placeholder.pos()
-            self.sound_bar.setGeometry(pos.x(), pos.y() + SOUND_BAR_Y_OFFSET, self.sound_bar_placeholder.width(), 95)
-            self.sound_bar.raise_()
-
-    def _reposition_logo(self):
-        if hasattr(self, 'logo_lbl') and hasattr(self, 'logo_placeholder'):
-            pos = self.logo_placeholder.pos()
-            self.logo_lbl.setGeometry(pos.x() + LOGO_X_OFFSET, pos.y() + LOGO_Y_OFFSET, self.logo_placeholder.width(), self.logo_placeholder.height())
-            self.logo_lbl.raise_()
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        if hasattr(self, 'glow_logo'):
-            self.glow_logo.setGeometry(0, 0, self.width(), self.height())
-        if hasattr(self, 'glow_br'):
-            self.glow_br.setGeometry(0, 0, self.width(), self.height())
-        self._reposition_sound_bar()
-        self._reposition_logo()
-
-    def _on_tray_activated(self, reason):
-        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
-            if self.isVisible():
-                self.hide()
-            else:
-                self.show()
-                self.raise_()
-                self.activateWindow()
-
-    def _tray_exit(self):
-        self._force_close = True
-        self.close()
-
-    def closeEvent(self, event):
-        if not getattr(self, '_force_close', False):
-            event.ignore()
-            self.hide()
-            self.tray_icon.showMessage(
-                "FocusFlow",
-                "Running in background. Click tray icon to restore.",
-                QIcon(NOTIFY_ICON),
-                2000
-            )
-            return
-
-        self.refresh_timer.stop()
-        self.sound.save()
-        for runner in self.active_runners:
-            if runner.time_instance.state == TaskState.IN_PROGRESS:
-                runner.time_instance.go_to_break()
-                runner.time_instance.break_capped = False
-        self._persist_all_tasks()
-        for runner in self.active_runners:
-            runner.stop()
-        self.blocker.unblock_sites()
-        self.tray_icon.hide()
-        super().closeEvent(event)
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
