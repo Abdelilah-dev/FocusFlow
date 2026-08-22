@@ -1905,3 +1905,123 @@ class MainWindow(QWidget):
             return
         next_runner = min(upcoming, key=lambda r: r.time_instance.start_datetime)
         next_runner.time_instance.push_start_later(delay_seconds)
+
+    def _refresh_all(self):
+        for runner in list(self.active_runners):
+            state = runner.time_instance.state
+            if state == TaskState.IN_PROGRESS:
+                runner.time_instance.tick_focus()
+            elif state == TaskState.BREAK:
+                runner.time_instance.tick_break()
+            elif state == TaskState.WAITING:
+                runner.time_instance.update_status()
+
+        for runner in list(self.active_runners):
+            delay = runner.time_instance.consume_pending_break_delay()
+            if delay > 0:
+                self._delay_next_task(runner, delay)
+
+        for runner in list(self.active_runners):
+            state = runner.time_instance.state
+
+            if state == TaskState.PENDING_VALIDATION and runner not in self._timer_done_played:
+                self.sound.play_effect("timer_done")
+                self._timer_done_played.add(runner)
+
+            current_col = None
+            for col in [self.todo_col, self.inprogress_col, self.done_col, self.refused_col]:
+                if runner in col.cards:
+                    current_col = col
+                    break
+
+            if state == TaskState.WAITING:
+                target_col = self.todo_col
+            elif state in (TaskState.IN_PROGRESS, TaskState.BREAK, TaskState.PENDING_VALIDATION):
+                target_col = self.inprogress_col
+            elif state == TaskState.REFUSED:
+                target_col = self.refused_col
+            else:
+                target_col = self.done_col
+
+            if current_col != target_col and current_col is not None:
+                current_col.remove_card(runner)
+                target_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+
+            card = target_col.get_card(runner) if target_col else None
+            if card:
+                card.refresh()
+
+        self.todo_col.sort_cards(lambda r: r.time_instance.start_datetime)
+        self.inprogress_col.sort_cards(lambda r: r.time_instance.remaining_seconds)
+
+        self._pick_focus_task()
+        self.focus_panel.update_focus(self.focused_runner)
+        self._update_stats()
+        self._update_badges()
+        self._persist_all_tasks()
+
+    def _reposition_sound_bar(self):
+        if hasattr(self, 'sound_bar') and hasattr(self, 'sound_bar_placeholder'):
+            pos = self.sound_bar_placeholder.pos()
+            self.sound_bar.setGeometry(pos.x(), pos.y() + SOUND_BAR_Y_OFFSET, self.sound_bar_placeholder.width(), 95)
+            self.sound_bar.raise_()
+
+    def _reposition_logo(self):
+        if hasattr(self, 'logo_lbl') and hasattr(self, 'logo_placeholder'):
+            pos = self.logo_placeholder.pos()
+            self.logo_lbl.setGeometry(pos.x() + LOGO_X_OFFSET, pos.y() + LOGO_Y_OFFSET, self.logo_placeholder.width(), self.logo_placeholder.height())
+            self.logo_lbl.raise_()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'glow_logo'):
+            self.glow_logo.setGeometry(0, 0, self.width(), self.height())
+        if hasattr(self, 'glow_br'):
+            self.glow_br.setGeometry(0, 0, self.width(), self.height())
+        self._reposition_sound_bar()
+        self._reposition_logo()
+
+    def _on_tray_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
+            if self.isVisible():
+                self.hide()
+            else:
+                self.show()
+                self.raise_()
+                self.activateWindow()
+
+    def _tray_exit(self):
+        self._force_close = True
+        self.close()
+
+    def closeEvent(self, event):
+        if not getattr(self, '_force_close', False):
+            event.ignore()
+            self.hide()
+            self.tray_icon.showMessage(
+                "FocusFlow",
+                "Running in background. Click tray icon to restore.",
+                QIcon(NOTIFY_ICON),
+                2000
+            )
+            return
+
+        self.refresh_timer.stop()
+        self.sound.save()
+        for runner in self.active_runners:
+            if runner.time_instance.state == TaskState.IN_PROGRESS:
+                runner.time_instance.go_to_break()
+                runner.time_instance.break_capped = False
+        self._persist_all_tasks()
+        for runner in self.active_runners:
+            runner.stop()
+        self.blocker.unblock_sites()
+        self.tray_icon.hide()
+        super().closeEvent(event)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
