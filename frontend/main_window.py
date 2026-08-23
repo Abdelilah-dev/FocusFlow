@@ -570,9 +570,10 @@ class TaskCard(QFrame):
                 self.refuse_btn.hide()
         elif state == TaskState.IN_PROGRESS:
             rem = self.runner.time_instance.remaining_seconds
-            m = rem // 60
+            h = rem // 3600
+            m = (rem % 3600) // 60
             s = rem % 60
-            self.time_lbl.setText(f"{m:02d}:{s:02d}")
+            self.time_lbl.setText(f"{h:02d}:{m:02d}:{s:02d}")
             if self.stop_btn:
                 self.stop_btn.show()
             if self.done_btn:
@@ -852,7 +853,7 @@ class FocusPanel(QFrame):
 
     def update_focus(self, runner):
         if runner is None:
-            self.big_time.setText("__ : __")
+            self.big_time.setText("00:00:00")
             self.focus_label.setText("READY")
             self.state_icon_lbl.hide()
             self._set_focus_mode(True)
@@ -876,9 +877,10 @@ class FocusPanel(QFrame):
             set_icon(self.play_btn, ICON_PLAY, 26)
         elif state == TaskState.IN_PROGRESS:
             rem = runner.time_instance.remaining_seconds
-            m = rem // 60
+            h = rem // 3600
+            m = (rem % 3600) // 60
             s = rem % 60
-            self.big_time.setText(f"{m:02d}:{s:02d}")
+            self.big_time.setText(f"{h:02d}:{m:02d}:{s:02d}")
             self.focus_label.setText("FOCUS")
             self.state_icon_lbl.hide()
             self._set_focus_mode(True)
@@ -893,7 +895,7 @@ class FocusPanel(QFrame):
             self._set_focus_mode(False)
             set_icon(self.play_btn, ICON_PLAY, 26)
         else:
-            self.big_time.setText("00:00")
+            self.big_time.setText("00:00:00")
             self.focus_label.setText("DONE")
             self.state_icon_lbl.setPixmap(QIcon(ICON_STATUS_DONE).pixmap(16, 16))
             self.state_icon_lbl.show()
@@ -1884,14 +1886,18 @@ class MainWindow(QWidget):
             self.refused_badge.setText(str(len(self.refused_col.cards)))
 
     def _pick_focus_task(self):
-        for runner in self.active_runners:
-            if runner.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
-                self.focused_runner = runner
-                return
-        for runner in self.active_runners:
-            if runner.time_instance.state == TaskState.WAITING:
-                self.focused_runner = runner
-                return
+        # اختر أقرب مهمة IN_PROGRESS أو BREAK (أقل وقت متبقي)
+        active = [r for r in self.active_runners
+                  if r.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK)]
+        if active:
+            self.focused_runner = min(active, key=lambda r: r.time_instance.remaining_seconds)
+            return
+        # اختر أقرب مهمة WAITING (أقرب وقت بدء)
+        waiting = [r for r in self.active_runners
+                   if r.time_instance.state == TaskState.WAITING]
+        if waiting:
+            self.focused_runner = min(waiting, key=lambda r: r.time_instance.start_datetime)
+            return
         self.focused_runner = None
 
     def _delay_next_task(self, current_runner, delay_seconds):
