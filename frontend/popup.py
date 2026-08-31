@@ -920,11 +920,12 @@ class AnimatedChip(QFrame):
 
 
 class Popup(QWidget):
-    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False, existing_tasks=None, existing_names=None):
+    def __init__(self, parent, on_save_callback, start_rect=None, edit_mode=False, task_data=None, on_edit_callback=None, read_only=False, existing_tasks=None, existing_names=None, retry_mode=False):
         super().__init__(parent)
         self.on_save_callback = on_save_callback
         self.on_edit_callback = on_edit_callback
         self.edit_mode = edit_mode
+        self.retry_mode = retry_mode
         self.read_only = read_only
         self.task_data = task_data or {}
         self.old_name = task_data.get("name", "") if edit_mode else ""
@@ -1358,6 +1359,8 @@ class Popup(QWidget):
             btn_text = "👁 View Only"
         elif self.edit_mode:
             btn_text = "💾 Save Changes"
+        elif self.retry_mode:
+            btn_text = "🔄 Retry Task"
         else:
             btn_text = "+ Add Task"
         save_btn = AnimatedSubmitButton(btn_text)
