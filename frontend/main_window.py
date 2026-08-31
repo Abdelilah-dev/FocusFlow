@@ -268,7 +268,7 @@ class MarqueeLabel(QLabel):
 
 
 class TaskCard(QFrame):
-    def __init__(self, runner, on_stop, on_complete, on_refuse, on_edit, on_view, column_type="todo", parent=None):
+    def __init__(self, runner, on_stop, on_complete, on_refuse, on_edit, on_view, on_retry=None, column_type="todo", parent=None):
         super().__init__(parent)
         self.runner = runner
         self.on_stop = on_stop
@@ -276,6 +276,7 @@ class TaskCard(QFrame):
         self.on_refuse = on_refuse
         self.on_edit = on_edit
         self.on_view = on_view
+        self.on_retry = on_retry
         self.column_type = column_type
         self.setFixedHeight(76)
         self.setStyleSheet(COLUMN_GRADIENTS.get(column_type, COLUMN_GRADIENTS["todo"]))
@@ -390,7 +391,40 @@ class TaskCard(QFrame):
 
         content.addLayout(center, stretch=1)
 
-        if self.column_type in ("done", "refused"):
+        if self.column_type == "refused":
+            right_frame = QFrame()
+            right_frame.setFixedSize(44, 76)
+            right_frame.setStyleSheet("background: transparent; border: none;")
+
+            retry_btn = QPushButton(right_frame)
+            retry_btn.setFixedSize(40, 40)
+            retry_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            retry_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(255, 179, 0, 0.25),
+                        stop:0.5 rgba(255, 179, 0, 0.10),
+                        stop:1 rgba(255, 179, 0, 0.25));
+                    border: 1px solid rgba(255, 179, 0, 0.5);
+                    border-radius: 20px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 rgba(255, 179, 0, 0.70),
+                        stop:0.5 rgba(255, 179, 0, 0.45),
+                        stop:1 rgba(255, 179, 0, 0.70));
+                    border: 1px solid rgba(255, 200, 50, 0.9);
+                }
+            """)
+            set_icon(retry_btn, ICON_EDIT, 18)
+            retry_btn.move(2, 18)
+            retry_btn.clicked.connect(lambda: self.on_retry(self.runner))
+
+            content.addWidget(right_frame)
+            self.stop_btn = None
+            self.done_btn = None
+            self.refuse_btn = None
+        elif self.column_type == "done":
             self.stop_btn = None
             self.done_btn = None
             self.refuse_btn = None
@@ -687,8 +721,8 @@ class KanbanColumn(QFrame):
         scroll.setWidget(self.cards_container)
         layout.addWidget(scroll)
 
-    def add_card(self, runner, on_stop, on_complete, on_refuse, on_edit, on_view):
-        card = TaskCard(runner, on_stop, on_complete, on_refuse, on_edit, on_view, column_type=self.column_type)
+    def add_card(self, runner, on_stop, on_complete, on_refuse, on_edit, on_view, on_retry=None):
+        card = TaskCard(runner, on_stop, on_complete, on_refuse, on_edit, on_view, on_retry=on_retry, column_type=self.column_type)
         self.cards_layout.insertWidget(self.cards_layout.count() - 1, card)
         self.cards[runner] = card
 
@@ -1636,7 +1670,7 @@ class MainWindow(QWidget):
         elif runner.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
             self.inprogress_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
         elif runner.time_instance.state == TaskState.REFUSED:
-            self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+            self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
         else:
             self.done_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
 
@@ -1687,6 +1721,64 @@ class MainWindow(QWidget):
             read_only=True
         )
 
+    def _retry_task(self, runner):
+        """كي تورك على زر الإعادة ف refused_col"""
+        task_data = {
+            "name": runner.name_instance.name,
+            "description": getattr(runner, 'description', ''),
+            "start_hour": runner.time_instance.start_hour,
+            "start_min": runner.time_instance.start_minute,
+            "dur_hour": runner.time_instance.duration_hours,
+            "dur_min": runner.time_instance.duration_minutes,
+            "sites": getattr(runner, 'sites', []),
+            "priority": str(runner.priority_instance)
+        }
+        self.current_popup = Popup(
+            self,
+            on_save_callback=lambda name_obj, time_obj, priority_obj, sites_list:
+                self._on_retry_confirmed(runner, name_obj, time_obj, priority_obj, sites_list),
+            start_rect=None,
+            retry_mode=True,
+            task_data=task_data,
+            existing_tasks=self._get_existing_task_windows(exclude_runner=runner),
+            existing_names=self._get_existing_task_names(exclude_runner=runner)
+        )
+
+    def _on_retry_confirmed(self, old_runner, name_obj, time_obj, priority_obj, sites_list):
+        """كي يصاوب فالpopup: حيد القديمة، ضيف الجديدة"""
+        # حيد القديمة
+        self._timer_done_played.discard(old_runner)
+        old_runner.stop()
+        for col in [self.todo_col, self.inprogress_col, self.done_col, self.refused_col]:
+            if old_runner in col.cards:
+                col.remove_card(old_runner)
+        if old_runner in self.active_runners:
+            self.active_runners.remove(old_runner)
+        if old_runner == self.focused_runner:
+            self.focused_runner = None
+
+        # ضيف الجديدة
+        self.sound.play_effect("add_task")
+        runner = TaskRunner(name_obj, time_obj, priority_obj, sites_list, sound_manager=self.sound)
+        runner.description = self.current_popup.desc_text.toPlainText().strip() if self.current_popup else getattr(old_runner, 'description', '')
+        runner.sites = sites_list
+        runner.start()
+        self.active_runners.append(runner)
+
+        if runner.time_instance.state == TaskState.WAITING:
+            self.todo_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
+        elif runner.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
+            self.inprogress_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
+        elif runner.time_instance.state == TaskState.REFUSED:
+            self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
+        else:
+            self.done_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
+
+        self._update_stats()
+        self._update_badges()
+        self._pick_focus_task()
+        self._persist_all_tasks()
+
     def _on_task_edited(self, runner, new_data):
         from backend.name import Name
         from backend.timer import Time
@@ -1717,7 +1809,7 @@ class MainWindow(QWidget):
         elif new_runner.time_instance.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
             self.inprogress_col.add_card(new_runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
         elif new_runner.time_instance.state == TaskState.REFUSED:
-            self.refused_col.add_card(new_runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+            self.refused_col.add_card(new_runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
         else:
             self.done_col.add_card(new_runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
 
@@ -1810,7 +1902,7 @@ class MainWindow(QWidget):
                 elif time_obj.state in (TaskState.IN_PROGRESS, TaskState.BREAK):
                     self.inprogress_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
                 elif time_obj.state == TaskState.REFUSED:
-                    self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+                    self.refused_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
                 else:
                     self.done_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
             except Exception as e:
@@ -1951,7 +2043,7 @@ class MainWindow(QWidget):
 
             if current_col != target_col and current_col is not None:
                 current_col.remove_card(runner)
-                target_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task)
+                target_col.add_card(runner, self._stop_task, self._complete_task, self._refuse_task, self._edit_task, self._view_task, on_retry=self._retry_task)
 
             card = target_col.get_card(runner) if target_col else None
             if card:
