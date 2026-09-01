@@ -402,19 +402,13 @@ class TaskCard(QFrame):
             retry_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             retry_btn.setStyleSheet("""
                 QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                        stop:0 rgba(255, 179, 0, 0.25),
-                        stop:0.5 rgba(255, 179, 0, 0.10),
-                        stop:1 rgba(255, 179, 0, 0.25));
-                    border: 1px solid rgba(255, 179, 0, 0.5);
+                    background-color: rgba(0, 0, 0, 0.25);
+                    border: 1px solid rgba(0, 0, 0, 0.4);
                     border-radius: 14px;
                 }
                 QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                        stop:0 rgba(255, 179, 0, 0.70),
-                        stop:0.5 rgba(255, 179, 0, 0.45),
-                        stop:1 rgba(255, 179, 0, 0.70));
-                    border: 1px solid rgba(255, 200, 50, 0.9);
+                    background-color: rgba(255, 179, 0, 0.8);
+                    border: 1px solid #FFB300;
                 }
             """)
             set_icon(retry_btn, ICON_RETRY, 13)
