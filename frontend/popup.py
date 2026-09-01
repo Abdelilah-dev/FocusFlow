@@ -379,11 +379,12 @@ class AnimatedSpinbox(QFrame):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(8, 0, right_margin, 0)
         layout.setSpacing(2)
+        layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.input_field = QLineEdit(f"{self.value:02d}")
         self.input_field.setFixedWidth(32)
         self.input_field.setFixedHeight(34)
-        self.input_field.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.input_field.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
         self.input_field.setMaxLength(2)
         self.input_field.returnPressed.connect(self.input_field.clearFocus)
         self.input_field.setStyleSheet("""
@@ -396,8 +397,7 @@ class AnimatedSpinbox(QFrame):
                 background: transparent;
                 selection-background-color: #FFB300;
                 selection-color: #000000;
-                padding-top: 0px;
-                padding-bottom: 4px;
+                padding: 0px;
             }
         """)
 
@@ -408,7 +408,7 @@ class AnimatedSpinbox(QFrame):
 
         self.unit_label = QLabel(self.unit)
         self.unit_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-top: 0px; padding-bottom: 4px;")
+        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-top: 0px; padding-bottom: 7px;")
 
         btn_widget = QWidget()
         btn_widget.setFixedWidth(28)
@@ -531,8 +531,7 @@ class AnimatedSpinbox(QFrame):
                 background: transparent;
                 selection-background-color: #FFB300;
                 selection-color: #000000;
-                padding-top: 0px;
-                padding-bottom: 4px;
+                padding: 0px;
             }}
         """)
 
