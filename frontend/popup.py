@@ -1176,6 +1176,7 @@ class Popup(QWidget):
         time_main_layout.setSpacing(10)
 
         start_card = QFrame()
+        start_card.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
         start_card.setStyleSheet("""
             QFrame {
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0e0e0e, stop:1 #060606);
@@ -1207,6 +1208,7 @@ class Popup(QWidget):
         sc_layout.addLayout(h1)
 
         dur_card = QFrame()
+        dur_card.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
         dur_card.setStyleSheet("""
             QFrame {
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0e0e0e, stop:1 #060606);
@@ -1239,8 +1241,10 @@ class Popup(QWidget):
 
         time_main_layout.addWidget(start_card)
         time_main_layout.addWidget(dur_card)
+        time_main_layout.addStretch()
 
         layout.addLayout(time_main_layout)
+        layout.addSpacing(12)
 
         self.time_error_lbl = QLabel("")
         self.time_error_lbl.setWordWrap(True)
