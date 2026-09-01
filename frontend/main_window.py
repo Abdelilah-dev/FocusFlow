@@ -588,9 +588,10 @@ class TaskCard(QFrame):
             if diff > 0:
                 h = diff // 3600
                 m = (diff % 3600) // 60
-                self.time_lbl.setText(f"-{h:02d}:{m:02d}")
+                s = diff % 60
+                self.time_lbl.setText(f"-{h:02d}:{m:02d}:{s:02d}")
             else:
-                self.time_lbl.setText("00:00")
+                self.time_lbl.setText("00:00:00")
             if self.stop_btn:
                 self.stop_btn.show()
             if self.done_btn:
