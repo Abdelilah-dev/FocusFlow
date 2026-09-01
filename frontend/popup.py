@@ -237,7 +237,7 @@ class AnimatedLineEdit(QLineEdit):
                 border-radius: 18px;
                 color: #FFFFFF;
                 padding: 6px 16px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 14px;
                 font-weight: 600;
                 selection-background-color: #FFB300;
@@ -329,7 +329,7 @@ class AnimatedTextEdit(QTextEdit):
                 border-radius: 18px;
                 color: #FFFFFF;
                 padding: 10px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 14px;
                 font-weight: 600;
                 selection-background-color: #FFB300;
@@ -389,7 +389,7 @@ class AnimatedSpinbox(QFrame):
         self.input_field.setStyleSheet("""
             QLineEdit {
                 color: #FFB300;
-                font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+                font-family: 'Playfair Display', 'SF Mono', 'Fira Code', 'Consolas', monospace;
                 font-weight: bold;
                 font-size: 16px;
                 border: none;
@@ -407,7 +407,7 @@ class AnimatedSpinbox(QFrame):
 
         self.unit_label = QLabel(self.unit)
         self.unit_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-bottom: 1px;")
+        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-bottom: 1px;")
 
         btn_widget = QWidget()
         btn_widget.setFixedWidth(28)
@@ -523,7 +523,7 @@ class AnimatedSpinbox(QFrame):
         self.input_field.setStyleSheet(f"""
             QLineEdit {{
                 color: rgb({r}, {g}, {b});
-                font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+                font-family: 'Playfair Display', 'SF Mono', 'Fira Code', 'Consolas', monospace;
                 font-weight: bold;
                 font-size: 16px;
                 border: none;
@@ -632,7 +632,7 @@ class AnimatedCloseButton(QPushButton):
             QPushButton {{
                 background-color: rgb({int(31 - 11 * self.hover_progress)}, {int(31 - 11 * self.hover_progress)}, {int(31 - 11 * self.hover_progress)});
                 color: rgb({text_r}, {text_g}, {text_b});
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 14px;
                 font-weight: bold;
                 border: {1.0 + 0.6 * self.hover_progress}px solid rgb({border_r}, {border_g}, {border_b});
@@ -686,7 +686,7 @@ class AnimatedAddButton(QPushButton):
             QPushButton {{
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE600, stop:1 #FF8C00); 
                 color: #000000; 
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 13px; font-weight: bold;
                 border: {border_px}px solid #FFFFFF; 
                 border-radius: 19px;
@@ -740,7 +740,7 @@ class AnimatedSubmitButton(QPushButton):
             QPushButton {{
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE600, stop:1 #FF8C00); 
                 color: #000000; 
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 14px; font-weight: bold;
                 border: {border_px}px solid #FFFFFF; 
                 border-radius: 21px;
@@ -827,7 +827,7 @@ class AnimatedPriorityButton(QPushButton):
         self.setStyleSheet(f"""
             QPushButton {{
                 border-radius: 19px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-weight: bold;
                 font-size: 13px;
                 background-color: {bg_color};
@@ -857,7 +857,7 @@ class AnimatedChip(QFrame):
             }
             QLabel { 
                 color: #000000; 
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
                 font-size: 13px; 
                 font-weight: bold;
                 background: transparent;
@@ -966,7 +966,7 @@ class Popup(QWidget):
             QLabel {
                 border: none;
                 background: transparent;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             }
         """)
 
@@ -1116,7 +1116,7 @@ class Popup(QWidget):
             logo_label.setStyleSheet("""
                 QLabel {
                     color: #FFB300;
-                    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                    font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                     font-size: 18px;
                     font-weight: bold;
                     background: transparent;
@@ -1178,7 +1178,7 @@ class Popup(QWidget):
         h1.setContentsMargins(0, 0, 0, 0)
         self.start_hour = AnimatedSpinbox(0, 23, 0, unit="h", right_margin=2)
         colon1 = QLabel(":")
-        colon1.setStyleSheet("color: #FFB300; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
+        colon1.setStyleSheet("color: #FFB300; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
         colon1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.start_min = AnimatedSpinbox(0, 59, 0, unit="min", right_margin=6)
 
@@ -1209,7 +1209,7 @@ class Popup(QWidget):
         h2.setContentsMargins(0, 0, 0, 0)
         self.dur_hour = AnimatedSpinbox(0, 23, 0, unit="h", right_margin=2)
         colon2 = QLabel(":")
-        colon2.setStyleSheet("color: #FFB300; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
+        colon2.setStyleSheet("color: #FFB300; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
         colon2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.dur_min = AnimatedSpinbox(0, 59, 25, unit="min", right_margin=6)
 
