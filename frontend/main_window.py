@@ -1013,13 +1013,12 @@ class MainWindow(QWidget):
 
         # Try to find the actual family names from loaded fonts
         for _fam in _families:
-            if "merriweather" in _fam.lower():
+            if "freeserif" in _fam.lower() or "free serif" in _fam.lower():
                 FONT_UI = _fam
-            if "playfair" in _fam.lower():
                 FONT_MONO = _fam
 
         # Update fallback strings with detected names
-        global FONT_UI_FALLBACK, FONT_MONO_FALLBACK
+        global FONT_UI, FONT_MONO, FONT_UI_FALLBACK, FONT_MONO_FALLBACK
         FONT_UI_FALLBACK = f"'{FONT_UI}', 'FreeSerif', 'Georgia', 'Times New Roman', serif"
         FONT_MONO_FALLBACK = f"'{FONT_MONO}', 'FreeSerif', 'Georgia', 'Times New Roman', serif"
 
