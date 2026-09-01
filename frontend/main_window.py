@@ -5,7 +5,8 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from datetime import datetime, timedelta
-from PySide6.QtCore import Qt, QTimer, QPoint, QSize
+from PySide6.QtCore import Qt, QTimer, QPoint, QSize, QSharedMemory
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont, QFontDatabase
 from PySide6 import QtSvg
 from PySide6.QtWidgets import (
@@ -59,6 +60,30 @@ AMBIENCE_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "ambience
 from paths import resource_path, get_asset_path, app_data_path
 
 ICONS_DIR = get_asset_path("assets", "icons")
+
+
+# ── Single Instance Guard ──
+_local_server = None
+
+class SingleInstanceGuard:
+    """Prevents multiple FocusFlow instances from running simultaneously."""
+    def __init__(self, app_id="FocusFlow_SingleInstance"):
+        global _local_server
+        self.server = QLocalServer()
+        if not self.server.listen(app_id):
+            # Another instance is running — send raise signal and exit
+            socket = QLocalSocket()
+            socket.connectToServer(app_id)
+            if socket.waitForConnected(500):
+                socket.write(b"RAISE")
+                socket.flush()
+                socket.waitForBytesWritten(500)
+            print("[FocusFlow] Another instance is already running. Raising it...")
+            sys.exit(0)
+        _local_server = self.server
+
+    def set_raise_callback(self, callback):
+        _local_server.newConnection.connect(callback)
 
 
 def icon_path(filename):
@@ -208,6 +233,10 @@ class MarqueeLabel(QLabel):
         self._last_tick = None
 
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Default to bold for task names
+        _f = self.font()
+        _f.setBold(True)
+        self.setFont(_f)
         self._timer = QTimer(self)
         self._timer.setInterval(30)
         self._timer.timeout.connect(self._advance)
@@ -382,7 +411,7 @@ class TaskCard(QFrame):
 
         self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
         self.name_lbl.setFont(QFont("FreeSerif", 10, QFont.Weight.Bold))
-        self.name_lbl.setStyleSheet("background: transparent; border: none; color: #000000;")
+        self.name_lbl.setStyleSheet("background: transparent; border: none; color: #000000; font-weight: bold;")
         self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
         center.addSpacing(10)
@@ -997,6 +1026,10 @@ class FocusPanel(QFrame):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        # Single instance guard
+        self._instance_guard = SingleInstanceGuard()
+        self._instance_guard.set_raise_callback(self._on_instance_raise)
 
         # Register custom fonts and detect actual family names
         global FONT_UI, FONT_MONO, FONT_UI_FALLBACK, FONT_MONO_FALLBACK
@@ -2125,6 +2158,23 @@ class MainWindow(QWidget):
     def _tray_exit(self):
         self._force_close = True
         self.close()
+
+    def _on_instance_raise(self):
+        """Called when another instance tries to open — raise this window."""
+        socket = _local_server.nextPendingConnection()
+        if socket.waitForReadyRead(500):
+            data = socket.readAll().data()
+            if data == b"RAISE":
+                self.show()
+                self.raise_()
+                self.activateWindow()
+                if hasattr(self, 'tray_icon'):
+                    self.tray_icon.showMessage(
+                        "FocusFlow",
+                        "Already running!",
+                        QIcon(NOTIFY_ICON),
+                        1500
+                    )
 
     def closeEvent(self, event):
         if not getattr(self, '_force_close', False):
