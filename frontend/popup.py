@@ -396,7 +396,8 @@ class AnimatedSpinbox(QFrame):
                 background: transparent;
                 selection-background-color: #FFB300;
                 selection-color: #000000;
-                padding-bottom: 1px;
+                padding-top: 0px;
+                padding-bottom: 4px;
             }
         """)
 
@@ -407,7 +408,8 @@ class AnimatedSpinbox(QFrame):
 
         self.unit_label = QLabel(self.unit)
         self.unit_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-bottom: 1px;")
+        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-top: 0px;
+                padding-bottom: 4px;")
 
         btn_widget = QWidget()
         btn_widget.setFixedWidth(28)
@@ -530,7 +532,8 @@ class AnimatedSpinbox(QFrame):
                 background: transparent;
                 selection-background-color: #FFB300;
                 selection-color: #000000;
-                padding-bottom: 1px;
+                padding-top: 0px;
+                padding-bottom: 4px;
             }}
         """)
 
