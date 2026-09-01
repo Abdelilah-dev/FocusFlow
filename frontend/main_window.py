@@ -999,6 +999,8 @@ class MainWindow(QWidget):
         super().__init__()
 
         # Register custom fonts and detect actual family names
+        global FONT_UI, FONT_MONO, FONT_UI_FALLBACK, FONT_MONO_FALLBACK
+
         _font_db = QFontDatabase()
         _families = set()
         for _font_file in [
@@ -1018,7 +1020,6 @@ class MainWindow(QWidget):
                 FONT_MONO = _fam
 
         # Update fallback strings with detected names
-        global FONT_UI, FONT_MONO, FONT_UI_FALLBACK, FONT_MONO_FALLBACK
         FONT_UI_FALLBACK = f"'{FONT_UI}', 'FreeSerif', 'Georgia', 'Times New Roman', serif"
         FONT_MONO_FALLBACK = f"'{FONT_MONO}', 'FreeSerif', 'Georgia', 'Times New Roman', serif"
 
