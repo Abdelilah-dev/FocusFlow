@@ -36,15 +36,15 @@ GREEN = "#2ed573"
 RED = "#ff4757"
 BREAK_COLOR = "#4FC3F7"
 
-FONT_UI = "Inter"
-FONT_UI_FALLBACK = "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif"
-FONT_MONO = "JetBrains Mono"
-FONT_MONO_FALLBACK = "'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace"
+FONT_UI = "Merriweather"
+FONT_UI_FALLBACK = "'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif"
+FONT_MONO = "Playfair Display"
+FONT_MONO_FALLBACK = "'Playfair Display', 'SF Mono', 'Fira Code', 'Consolas', monospace"
 
-FONT_UI = "Inter"
-FONT_UI_FALLBACK = "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif"
-FONT_MONO = "JetBrains Mono"
-FONT_MONO_FALLBACK = "'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace"
+FONT_UI = "Merriweather"
+FONT_UI_FALLBACK = "'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif"
+FONT_MONO = "Playfair Display"
+FONT_MONO_FALLBACK = "'Playfair Display', 'SF Mono', 'Fira Code', 'Consolas', monospace"
 
 TOOLBAR_Y_OFFSET = 60
 SOUND_BAR_Y_OFFSET = -185
@@ -381,7 +381,7 @@ class TaskCard(QFrame):
         center.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.name_lbl = MarqueeLabel(self.runner.name_instance.name, text_color="#000000")
-        self.name_lbl.setFont(QFont("Inter", 10, QFont.Weight.Bold))
+        self.name_lbl.setFont(QFont("Merriweather", 10, QFont.Weight.Bold))
         self.name_lbl.setStyleSheet("background: transparent; border: none; color: #000000;")
         self.name_lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         center.addWidget(self.name_lbl)
@@ -396,7 +396,7 @@ class TaskCard(QFrame):
         self.time_lbl = QLabel("--:--")
         self.time_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.time_lbl.setStyleSheet(
-            "color: #000000; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; font-weight: 600; background: transparent; border: none;"
+            "color: #000000; font-family: 'Playfair Display', 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; font-weight: 600; background: transparent; border: none;"
         )
         center.addWidget(self.time_lbl)
 
@@ -680,7 +680,7 @@ class KanbanColumn(QFrame):
         menu_icon.setStyleSheet("background: transparent; border: none;")
 
         title_lbl = QLabel(self.title)
-        title_lbl.setStyleSheet(f"color: {TEXT_PRIMARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 16px; font-weight: 600; background: transparent; border: none;")
+        title_lbl.setStyleSheet(f"color: {TEXT_PRIMARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 16px; font-weight: 600; background: transparent; border: none;")
 
         row1.addWidget(menu_icon)
         row1.addWidget(title_lbl)
@@ -699,7 +699,7 @@ class KanbanColumn(QFrame):
             status_lbl.setStyleSheet(f"color: {self.accent_color}; font-size: 11px; background: transparent; border: none;")
 
         sub_lbl = QLabel(self.subtitle.upper())
-        sub_lbl.setStyleSheet(f"color: {self.accent_color}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 1px; background: transparent; border: none;")
+        sub_lbl.setStyleSheet(f"color: {self.accent_color}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 1px; background: transparent; border: none;")
 
         row2.addWidget(status_lbl)
         row2.addWidget(sub_lbl)
@@ -784,7 +784,7 @@ class FocusPanel(QFrame):
                         background-color: {ACCENT};
                         border-radius: 10px;
                         padding: 7px 18px;
-                        font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                        font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                         font-size: 11px;
                         font-weight: bold;
                     }}
@@ -796,7 +796,7 @@ class FocusPanel(QFrame):
                         background-color: #0f0f0f;
                         border-radius: 10px;
                         padding: 7px 18px;
-                        font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                        font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                         font-size: 11px;
                         font-weight: bold;
                     }}
@@ -832,7 +832,7 @@ class FocusPanel(QFrame):
 
         self.big_time = QLabel("__ : __")
         self.big_time.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.big_time.setStyleSheet(f"color: {TEXT_PRIMARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 48px; font-weight: 300; background: transparent; border: none;")
+        self.big_time.setStyleSheet(f"color: {TEXT_PRIMARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 48px; font-weight: 300; background: transparent; border: none;")
 
         state_row = QHBoxLayout()
         state_row.setSpacing(6)
@@ -844,7 +844,7 @@ class FocusPanel(QFrame):
 
         self.focus_label = QLabel("READY")
         self.focus_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.focus_label.setStyleSheet(f"color: {ACCENT}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 20px; font-weight: bold; letter-spacing: 4px; background: transparent; border: none;")
+        self.focus_label.setStyleSheet(f"color: {ACCENT}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 20px; font-weight: bold; letter-spacing: 4px; background: transparent; border: none;")
 
         state_row.addWidget(self.state_icon_lbl)
         state_row.addWidget(self.focus_label)
@@ -950,7 +950,7 @@ class FocusPanel(QFrame):
                     background-color: {ACCENT};
                     border-radius: 10px;
                     padding: 7px 18px;
-                    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                    font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                     font-size: 11px;
                     font-weight: bold;
                 }}
@@ -961,7 +961,7 @@ class FocusPanel(QFrame):
                     background-color: #0f0f0f;
                     border-radius: 10px;
                     padding: 7px 18px;
-                    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                    font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                     font-size: 11px;
                     font-weight: bold;
                 }}
@@ -973,7 +973,7 @@ class FocusPanel(QFrame):
                     background-color: #0f0f0f;
                     border-radius: 10px;
                     padding: 7px 18px;
-                    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                    font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                     font-size: 11px;
                     font-weight: bold;
                 }}
@@ -984,7 +984,7 @@ class FocusPanel(QFrame):
                     background-color: {ACCENT};
                     border-radius: 10px;
                     padding: 7px 18px;
-                    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                    font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                     font-size: 11px;
                     font-weight: bold;
                 }}
@@ -1181,7 +1181,7 @@ class MainWindow(QWidget):
         tb_layout.addStretch()
 
         self.stats_lbl = QLabel("0 / 0 COMPLETED")
-        self.stats_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; background: transparent; border: none;")
+        self.stats_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; background: transparent; border: none;")
         tb_layout.addWidget(self.stats_lbl)
         tb_layout.addSpacing(20)
 
@@ -1194,7 +1194,7 @@ class MainWindow(QWidget):
             QPushButton {{
                 color: {TEXT_SECONDARY};
                 background-color: {BG_MAIN};
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.5px;
@@ -1374,7 +1374,7 @@ class MainWindow(QWidget):
         h1.setContentsMargins(12, 8, 12, 8)
         h1.setSpacing(4)
         lbl1 = QLabel("TO DO")
-        lbl1.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
+        lbl1.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
         dot1 = QLabel("●")
         dot1.setStyleSheet(f"color: {GRAY}; font-size: 15px; background: transparent; border: none;")
         self.todo_badge = QLabel("0")
@@ -1386,7 +1386,7 @@ class MainWindow(QWidget):
                 background-color: {BG_HEADER_CARD};
                 border: 1px solid {BORDER};
                 border-radius: 6px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 13px;
                 font-weight: bold;
             }}
@@ -1409,7 +1409,7 @@ class MainWindow(QWidget):
         h2.setContentsMargins(12, 8, 12, 8)
         h2.setSpacing(4)
         lbl2 = QLabel("IN PROGRESS")
-        lbl2.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
+        lbl2.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
         dot2 = QLabel("●")
         dot2.setStyleSheet(f"color: {ACCENT}; font-size: 15px; background: transparent; border: none;")
         self.inprog_badge = QLabel("0")
@@ -1421,7 +1421,7 @@ class MainWindow(QWidget):
                 background-color: {BG_HEADER_CARD};
                 border: 1px solid {BORDER};
                 border-radius: 6px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 13px;
                 font-weight: bold;
             }}
@@ -1449,7 +1449,7 @@ class MainWindow(QWidget):
         done_layout.setSpacing(4)
 
         lbl3 = QLabel("DONE")
-        lbl3.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
+        lbl3.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
         dot3 = QLabel("●")
         dot3.setStyleSheet(f"color: {GREEN}; font-size: 15px; background: transparent; border: none;")
         self.done_badge = QLabel("0")
@@ -1461,7 +1461,7 @@ class MainWindow(QWidget):
                 background-color: {BG_HEADER_CARD};
                 border: 1px solid {BORDER};
                 border-radius: 6px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 13px;
                 font-weight: bold;
             }}
@@ -1485,7 +1485,7 @@ class MainWindow(QWidget):
         refused_layout.setSpacing(4)
 
         lbl4 = QLabel("REFUSED")
-        lbl4.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
+        lbl4.setStyleSheet(f"color: {TEXT_SECONDARY}; font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; background: transparent; border: none;")
         dot4 = QLabel("●")
         dot4.setStyleSheet(f"color: {RED}; font-size: 15px; background: transparent; border: none;")
         self.refused_badge = QLabel("0")
@@ -1497,7 +1497,7 @@ class MainWindow(QWidget):
                 background-color: {BG_HEADER_CARD};
                 border: 1px solid {BORDER};
                 border-radius: 6px;
-                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-family: 'Merriweather', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 13px;
                 font-weight: bold;
             }}
