@@ -57,6 +57,7 @@ def icon_path(filename):
 
 
 ICON_EDIT = icon_path("edit.svg")
+ICON_RETRY = icon_path("retry.svg")
 ICON_MENU = icon_path("menu.svg")
 ICON_CLOSE = icon_path("close.svg")
 ICON_CHECK = icon_path("check.svg")
@@ -397,7 +398,7 @@ class TaskCard(QFrame):
             right_frame.setStyleSheet("background: transparent; border: none;")
 
             retry_btn = QPushButton(right_frame)
-            retry_btn.setFixedSize(40, 40)
+            retry_btn.setFixedSize(28, 28)
             retry_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             retry_btn.setStyleSheet("""
                 QPushButton {
@@ -406,7 +407,7 @@ class TaskCard(QFrame):
                         stop:0.5 rgba(255, 179, 0, 0.10),
                         stop:1 rgba(255, 179, 0, 0.25));
                     border: 1px solid rgba(255, 179, 0, 0.5);
-                    border-radius: 20px;
+                    border-radius: 14px;
                 }
                 QPushButton:hover {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -416,8 +417,8 @@ class TaskCard(QFrame):
                     border: 1px solid rgba(255, 200, 50, 0.9);
                 }
             """)
-            set_icon(retry_btn, ICON_EDIT, 18)
-            retry_btn.move(2, 18)
+            set_icon(retry_btn, ICON_RETRY, 13)
+            retry_btn.move(8, 11)
             retry_btn.clicked.connect(lambda: self.on_retry(self.runner))
 
             content.addWidget(right_frame)
