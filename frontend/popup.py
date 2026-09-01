@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import json
 from datetime import timedelta
 from PySide6.QtCore import Qt, QVariantAnimation, QEasingCurve, QRect, QSize
-from PySide6.QtGui import QIntValidator, QPixmap, QColor
+from PySide6.QtGui import QIntValidator, QPixmap, QColor, QFont, QFontMetrics, QFont, QFontMetrics
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QTextEdit, QPushButton, QFrame, QGraphicsDropShadowEffect, QSizePolicy,
@@ -381,9 +381,22 @@ class AnimatedSpinbox(QFrame):
         layout.setSpacing(2)
         layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
+        # ── Pixel-perfect vertical centering ──
+        _num_font = QFont("FreeSerif", 16)
+        _num_font.setBold(True)
+        _num_fm = QFontMetrics(_num_font)
+        _num_height = _num_fm.height()
+
+        _unit_font = QFont("FreeSerif", 12)
+        _unit_font.setBold(True)
+        _unit_fm = QFontMetrics(_unit_font)
+        _unit_height = _unit_fm.height()
+
+        _widget_h = max(_num_height, _unit_height) + 2
+
         self.input_field = QLineEdit(f"{self.value:02d}")
         self.input_field.setFixedWidth(32)
-        self.input_field.setFixedHeight(34)
+        self.input_field.setFixedHeight(_widget_h)
         self.input_field.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
         self.input_field.setMaxLength(2)
         self.input_field.returnPressed.connect(self.input_field.clearFocus)
@@ -398,6 +411,7 @@ class AnimatedSpinbox(QFrame):
                 selection-background-color: #FFB300;
                 selection-color: #000000;
                 padding: 0px;
+                margin: 0px;
             }
         """)
 
@@ -407,6 +421,7 @@ class AnimatedSpinbox(QFrame):
         self.input_field.editingFinished.connect(self._on_editing_finished)
 
         self.unit_label = QLabel(self.unit)
+        self.unit_label.setFixedHeight(42)
         self.unit_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-top: 0px; padding-bottom: 7px;")
 
@@ -532,6 +547,7 @@ class AnimatedSpinbox(QFrame):
                 selection-background-color: #FFB300;
                 selection-color: #000000;
                 padding: 0px;
+                margin: 0px;
             }}
         """)
 

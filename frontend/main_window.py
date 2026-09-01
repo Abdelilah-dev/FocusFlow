@@ -69,6 +69,18 @@ class SingleInstanceGuard:
     """Prevents multiple FocusFlow instances from running simultaneously."""
     def __init__(self, app_id="FocusFlow_SingleInstance"):
         global _local_server
+        self.app_id = app_id
+
+        # Clean up stale socket file from previous crash/kill
+        import tempfile
+        _socket_path = os.path.join(tempfile.gettempdir(), app_id)
+        if os.path.exists(_socket_path):
+            try:
+                os.remove(_socket_path)
+                print(f"[FocusFlow] Cleaned stale socket: {_socket_path}")
+            except OSError:
+                pass
+
         self.server = QLocalServer()
         if not self.server.listen(app_id):
             # Another instance is running — send raise signal and exit
@@ -84,6 +96,17 @@ class SingleInstanceGuard:
 
     def set_raise_callback(self, callback):
         _local_server.newConnection.connect(callback)
+
+    def cleanup(self):
+        """Remove socket file on shutdown."""
+        import tempfile
+        _socket_path = os.path.join(tempfile.gettempdir(), self.app_id)
+        if os.path.exists(_socket_path):
+            try:
+                os.remove(_socket_path)
+            except OSError:
+                pass
+        self.server.close()
 
 
 def icon_path(filename):
@@ -2190,6 +2213,10 @@ class MainWindow(QWidget):
 
         self.refresh_timer.stop()
         self.sound.save()
+
+        # Clean up single instance socket
+        if hasattr(self, '_instance_guard'):
+            self._instance_guard.cleanup()
         for runner in self.active_runners:
             if runner.time_instance.state == TaskState.IN_PROGRESS:
                 runner.time_instance.go_to_break()
