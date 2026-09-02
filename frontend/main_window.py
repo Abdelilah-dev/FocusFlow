@@ -11,7 +11,8 @@ from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont, QFontDatabase
 from PySide6 import QtSvg
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QFrame, QScrollArea, QSlider, QSystemTrayIcon, QMenu, QSizePolicy
+    QPushButton, QFrame, QScrollArea, QSlider, QSystemTrayIcon, QMenu, QSizePolicy,
+    QStyle, QStyleOptionSlider
 )
 from PySide6.QtGui import QAction
 from backend.timer import TaskState
@@ -1046,6 +1047,37 @@ class FocusPanel(QFrame):
         self.progress_bars[1].setStyleSheet(f"background-color: {ACCENT if not is_focus else BORDER}; border-radius: 2px;")
 
 
+class ClickToSeekSlider(QSlider):
+    """QSlider كيمشي ديريكت للبلاصة لي كتوري عليها بالكليك،
+    بدل السلوك الافتراضي ديال Qt لي كيزيد/ينقص step ب step."""
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            opt = QStyleOptionSlider()
+            self.initStyleOption(opt)
+            groove_rect = self.style().subControlRect(
+                QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderGroove, self
+            )
+            handle_rect = self.style().subControlRect(
+                QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderHandle, self
+            )
+            # إلا كان الكليك فوق الهاندل نفسه، خلي Qt يدير drag العادي
+            if not handle_rect.contains(event.position().toPoint()):
+                if self.orientation() == Qt.Orientation.Horizontal:
+                    pos = event.position().toPoint().x() - groove_rect.x()
+                    span = max(groove_rect.width(), 1)
+                else:
+                    pos = event.position().toPoint().y() - groove_rect.y()
+                    span = max(groove_rect.height(), 1)
+                value = QStyle.sliderValueFromPosition(
+                    self.minimum(), self.maximum(), pos, span
+                )
+                self.setValue(value)
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -1342,7 +1374,7 @@ class MainWindow(QWidget):
         self.vol_btn.clicked.connect(self._toggle_mute)
         sound_layout.addWidget(self.vol_btn)
 
-        self.vol_slider = QSlider(Qt.Orientation.Horizontal)
+        self.vol_slider = ClickToSeekSlider(Qt.Orientation.Horizontal)
         self.vol_slider.setFixedWidth(140)
         self.vol_slider.setFixedHeight(18)
         self.vol_slider.setRange(0, 100)
