@@ -423,7 +423,7 @@ class AnimatedSpinbox(QFrame):
         self.unit_label = QLabel(self.unit)
         self.unit_label.setFixedHeight(42)
         self.unit_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 12px; border: none; background: transparent; padding-top: 0px; padding-bottom: 7px;")
+        self.unit_label.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 13px; border: none; background: transparent; padding-top: 1px; padding-bottom: 1px;")
 
         btn_widget = QWidget()
         btn_widget.setFixedWidth(28)
@@ -995,7 +995,7 @@ class Popup(QWidget):
 
         card_layout = QVBoxLayout(self.card)
         card_layout.setContentsMargins(28, 20, 28, 20)
-        card_layout.setSpacing(8)
+        card_layout.setSpacing(4)
 
         self._build_header(card_layout)
         self._build_task_name(card_layout)
@@ -1175,8 +1175,16 @@ class Popup(QWidget):
         time_main_layout.setContentsMargins(0, 0, 0, 0)
         time_main_layout.setSpacing(10)
 
+        # ── Column 1: Start Time ──
+        col1 = QVBoxLayout()
+        col1.setContentsMargins(0, 0, 0, 0)
+        col1.setSpacing(4)
+
+        lbl1 = QLabel("⏱️ Start Time")
+        lbl1.setStyleSheet("color: #CCCCCC; font-size: 12px; font-weight: bold; background: transparent; border: none;")
+
         start_card = QFrame()
-        start_card.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
+        start_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         start_card.setStyleSheet("""
             QFrame {
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0e0e0e, stop:1 #060606);
@@ -1184,31 +1192,37 @@ class Popup(QWidget):
                 border-radius: 18px;
             }
         """)
-        sc_layout = QVBoxLayout(start_card)
-        sc_layout.setContentsMargins(12, 10, 12, 10)
-        sc_layout.setSpacing(6)
 
-        lbl1 = QLabel("⏱️ Start Time")
-        lbl1.setStyleSheet("color: #CCCCCC; font-size: 12px; font-weight: bold; background: transparent; border: none;")
-
-        h1 = QHBoxLayout()
+        h1 = QHBoxLayout(start_card)
+        h1.setContentsMargins(12, 12, 12, 12)
         h1.setSpacing(4)
-        h1.setContentsMargins(0, 0, 0, 0)
+
         self.start_hour = AnimatedSpinbox(0, 23, 0, unit="h", right_margin=2)
         colon1 = QLabel(":")
-        colon1.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
+        colon1.setFixedWidth(12)
         colon1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        colon1.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
         self.start_min = AnimatedSpinbox(0, 59, 0, unit="min", right_margin=6)
 
-        h1.addWidget(self.start_hour)
-        h1.addWidget(colon1)
-        h1.addWidget(self.start_min)
+        h1.addStretch()
+        h1.addWidget(self.start_hour, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h1.addWidget(colon1, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h1.addWidget(self.start_min, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h1.addStretch()
 
-        sc_layout.addWidget(lbl1)
-        sc_layout.addLayout(h1)
+        col1.addWidget(lbl1)
+        col1.addWidget(start_card)
+
+        # ── Column 2: Duration ──
+        col2 = QVBoxLayout()
+        col2.setContentsMargins(0, 0, 0, 0)
+        col2.setSpacing(4)
+
+        lbl2 = QLabel("⏳ Duration")
+        lbl2.setStyleSheet("color: #CCCCCC; font-size: 12px; font-weight: bold; background: transparent; border: none;")
 
         dur_card = QFrame()
-        dur_card.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
+        dur_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         dur_card.setStyleSheet("""
             QFrame {
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0e0e0e, stop:1 #060606);
@@ -1216,44 +1230,40 @@ class Popup(QWidget):
                 border-radius: 18px;
             }
         """)
-        dc_layout = QVBoxLayout(dur_card)
-        dc_layout.setContentsMargins(12, 10, 12, 10)
-        dc_layout.setSpacing(6)
 
-        lbl2 = QLabel("⏳ Duration")
-        lbl2.setStyleSheet("color: #CCCCCC; font-size: 12px; font-weight: bold; background: transparent; border: none;")
-
-        h2 = QHBoxLayout()
+        h2 = QHBoxLayout(dur_card)
+        h2.setContentsMargins(12, 12, 12, 12)
         h2.setSpacing(4)
-        h2.setContentsMargins(0, 0, 0, 0)
+
         self.dur_hour = AnimatedSpinbox(0, 23, 0, unit="h", right_margin=2)
         colon2 = QLabel(":")
-        colon2.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
+        colon2.setFixedWidth(12)
         colon2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        colon2.setStyleSheet("color: #FFB300; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-weight: bold; font-size: 16px; background: transparent; border: none;")
         self.dur_min = AnimatedSpinbox(0, 59, 25, unit="min", right_margin=6)
 
-        h2.addWidget(self.dur_hour)
-        h2.addWidget(colon2)
-        h2.addWidget(self.dur_min)
+        h2.addStretch()
+        h2.addWidget(self.dur_hour, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h2.addWidget(colon2, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h2.addWidget(self.dur_min, alignment=Qt.AlignmentFlag.AlignVCenter)
+        h2.addStretch()
 
-        dc_layout.addWidget(lbl2)
-        dc_layout.addLayout(h2)
+        col2.addWidget(lbl2)
+        col2.addWidget(dur_card)
 
-        time_main_layout.addWidget(start_card)
-        time_main_layout.addWidget(dur_card)
-        time_main_layout.addStretch()
+        time_main_layout.addLayout(col1)
+        time_main_layout.addLayout(col2)
 
         layout.addLayout(time_main_layout)
-        layout.addSpacing(12)
 
         self.time_error_lbl = QLabel("")
         self.time_error_lbl.setWordWrap(True)
         self.time_error_lbl.setStyleSheet(
             "color: #FF5555; font-size: 12px; font-weight: bold; background: transparent; border: none;"
         )
-        self.time_error_lbl.hide()
+        self.time_error_lbl.setFixedHeight(20)
+        self.time_error_lbl.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.time_error_lbl)
-
     def _build_sites_section(self, layout):
         lbl = QLabel("🛡️ Blocked Websites")
         lbl.setStyleSheet("color: #CCCCCC; font-size: 13px; font-weight: bold;")
@@ -1407,7 +1417,6 @@ class Popup(QWidget):
         return conflicts
 
     def save(self):
-        self.time_error_lbl.hide()
         self.time_error_lbl.setText("")
 
         time_obj = Time(
@@ -1426,7 +1435,6 @@ class Popup(QWidget):
                 for name, start, end in conflicts
             )
             self.time_error_lbl.setText(f"⏰ Conflicts with {conflict_text} — pick another slot")
-            self.time_error_lbl.show()
             return
 
         typed_name = self.name_entry.text().strip()

@@ -1241,22 +1241,36 @@ class MainWindow(QWidget):
         tb_layout.setContentsMargins(20, 0, 20, 0)
         tb_layout.setSpacing(16)
 
-        add_task_btn = QPushButton("+  Add Task")
-        add_task_btn.setFixedHeight(40)
-        add_task_btn.setMinimumWidth(200)
+        add_task_btn = QPushButton("  +  Add Task  ")
+        add_task_btn.setFixedHeight(44)
+        add_task_btn.setMinimumWidth(220)
         add_task_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_task_btn.setStyleSheet(f"""
             QPushButton {{
                 color: {ACCENT};
-                background-color: transparent;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #141414,
+                    stop:0.5 #0f0f0f,
+                    stop:1 #0a0a0a);
+                font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
                 font-size: 15px;
                 font-weight: bold;
-                border: 1px dashed {TEXT_MUTED};
-                border-radius: 10px;
+                border: 1.2px solid #2a2a2a;
+                border-radius: 22px;
+                padding: 0 24px;
             }}
             QPushButton:hover {{
-                border: 1px solid {ACCENT};
-                background-color: #1a1508;
+                color: #FFE600;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #1a1508,
+                    stop:0.5 #141208,
+                    stop:1 #0f0c06);
+                border: 1.2px solid {ACCENT};
+            }}
+            QPushButton:pressed {{
+                color: #FF8C00;
+                background: #0a0a0a;
+                border: 1.2px solid #FF8C00;
             }}
         """)
         add_task_btn.clicked.connect(self.show_popup)
