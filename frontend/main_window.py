@@ -1353,59 +1353,50 @@ class MainWindow(QWidget):
                 border: none;
             }}
 
-            /* الشريط الأساسي */
             QSlider::groove:horizontal {{
                 height: 6px;
-                background: #1a1a1a;
-                border: 1px solid #2a2a2a;
+                background: #111111;
+                border: none;
                 border-radius: 3px;
             }}
 
-            /* الجزء الممتلئ — الأصفر المتدرج */
             QSlider::sub-page:horizontal {{
                 height: 6px;
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #FF8C00,
-                    stop:1 #FFB300);
+                    stop:0 #D4A017,
+                    stop:0.6 #FFB300,
+                    stop:1 #FFE066);
                 border: none;
                 border-radius: 3px;
             }}
 
-            /* الجزء الفارغ */
             QSlider::add-page:horizontal {{
                 height: 6px;
-                background: #141414;
+                background: #111111;
                 border: none;
                 border-radius: 3px;
             }}
 
-            /* المقبض الدائري */
             QSlider::handle:horizontal {{
-                width: 16px;
-                height: 16px;
-                margin: -6px 0;
+                width: 14px;
+                height: 14px;
+                margin: -4px 0;
                 background: qradialgradient(cx:0.5, cy:0.5, radius:0.5,
                     stop:0 #ffffff,
-                    stop:0.7 #e0e0e0,
-                    stop:1 #888888);
-                border: 2px solid #FFB300;
-                border-radius: 8px;
+                    stop:0.6 #e8e8e8,
+                    stop:1 #b0b0b0);
+                border: 1.5px solid #333333;
+                border-radius: 7px;
             }}
 
-            /* المقبض عند المرور */
             QSlider::handle:horizontal:hover {{
                 background: #ffffff;
-                border: 2px solid #FF8C00;
-                width: 18px;
-                height: 18px;
-                margin: -7px 0;
-                border-radius: 9px;
+                border: 1.5px solid {ACCENT};
             }}
 
-            /* المقبض عند الضغط */
             QSlider::handle:horizontal:pressed {{
                 background: #FFB300;
-                border: 2px solid #FF8C00;
+                border: 1.5px solid #FF8C00;
             }}
         """)
         self.vol_slider.valueChanged.connect(self._on_slider_changed)
