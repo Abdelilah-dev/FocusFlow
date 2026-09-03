@@ -613,18 +613,22 @@ class AnimatedCloseButton(QPushButton):
         self.update_style()
 
     def enterEvent(self, event):
+        super().enterEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(1.0)
         self.anim.start()
-        super().enterEvent(event)
 
     def leaveEvent(self, event):
+        super().leaveEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(0.0)
         self.anim.start()
-        super().leaveEvent(event)
 
     def _on_anim_value(self, val):
         self.hover_progress = val
@@ -677,18 +681,22 @@ class AnimatedAddButton(QPushButton):
         self.update_style()
 
     def enterEvent(self, event):
+        super().enterEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(1.0)
         self.anim.start()
-        super().enterEvent(event)
 
     def leaveEvent(self, event):
+        super().leaveEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(0.0)
         self.anim.start()
-        super().leaveEvent(event)
 
     def _on_anim_value(self, val):
         self.hover_progress = val
@@ -731,18 +739,22 @@ class AnimatedSubmitButton(QPushButton):
         self.update_style()
 
     def enterEvent(self, event):
+        super().enterEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(1.0)
         self.anim.start()
-        super().enterEvent(event)
 
     def leaveEvent(self, event):
+        super().leaveEvent(event)
+        if not self.isEnabled():
+            return
         self.anim.stop()
         self.anim.setStartValue(self.hover_progress)
         self.anim.setEndValue(0.0)
         self.anim.start()
-        super().leaveEvent(event)
 
     def _on_anim_value(self, val):
         self.hover_progress = val
@@ -793,14 +805,18 @@ class AnimatedPriorityButton(QPushButton):
             self.run_animation()
 
     def enterEvent(self, event):
+        super().enterEvent(event)
+        if not self.isEnabled():
+            return
         self.is_hovered = True
         self.run_animation()
-        super().enterEvent(event)
 
     def leaveEvent(self, event):
+        super().leaveEvent(event)
+        if not self.isEnabled():
+            return
         self.is_hovered = False
         self.run_animation()
-        super().leaveEvent(event)
 
     def run_animation(self):
         self.anim.stop()
@@ -1102,6 +1118,12 @@ class Popup(QWidget):
         self.dur_hour.setEnabled(False)
         self.dur_min.setEnabled(False)
         self.site_entry.setEnabled(False)
+        self.add_site_btn.setEnabled(False)
+        self.add_site_btn.shadow.setEnabled(False)
+        self.add_site_btn.setStyleSheet(self.add_site_btn.styleSheet().replace(
+            "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE600, stop:1 #FF8C00);",
+            "background-color: #333333;"
+        ).replace("color: #000000;", "color: #888888;"))
         self.btn_high.setEnabled(False)
         self.btn_med.setEnabled(False)
         self.btn_low.setEnabled(False)
@@ -1272,13 +1294,13 @@ class Popup(QWidget):
         self.site_entry = AnimatedLineEdit("e.g. youtube.com")
         self.site_entry.setFixedHeight(38)
 
-        add_btn = AnimatedAddButton("Add")
-        add_btn.setFixedSize(68, 38)
-        add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_btn.clicked.connect(self.add_site_item)
+        self.add_site_btn = AnimatedAddButton("Add")
+        self.add_site_btn.setFixedSize(68, 38)
+        self.add_site_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.add_site_btn.clicked.connect(self.add_site_item)
 
         input_layout.addWidget(self.site_entry)
-        input_layout.addWidget(add_btn)
+        input_layout.addWidget(self.add_site_btn)
 
         self.scroll_area = SmoothScrollArea()
         self.scroll_area.setWidgetResizable(True)
@@ -1399,6 +1421,7 @@ class Popup(QWidget):
         save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         if self.read_only:
             save_btn.setEnabled(False)
+            save_btn.shadow.setEnabled(False)
             save_btn.setStyleSheet(save_btn.styleSheet().replace(
                 "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE600, stop:1 #FF8C00);",
                 "background-color: #333333;"

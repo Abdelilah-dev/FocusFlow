@@ -53,16 +53,17 @@ class TaskRunner:
                 self.time_instance.tick_focus()
                 self._break_notify_mark = 0
             elif self.time_instance.state == TaskState.BREAK:
-                prev_state = self.time_instance.state
                 self.time_instance.tick_break()
-                
-                # Notify when max break time reached and auto-resumed
-                if prev_state == TaskState.BREAK and self.time_instance.state == TaskState.IN_PROGRESS:
-                    self.notifier.send_alert("Maximum break time reached (30 min). Focus resumed automatically.")
                 mark = self.time_instance.break_time_spent // 300
                 if mark > self._break_notify_mark:
                     self._break_notify_mark = mark
-                    self.notifier.send_alert(f"You've wasted {mark * 5} minutes on break.")
+                    total_minutes = mark * 5
+                    if total_minutes >= 60:
+                        hrs = total_minutes // 60
+                        mins = total_minutes % 60
+                        self.notifier.send_alert(f"You've wasted {hrs}:{mins:02d} on break.")
+                    else:
+                        self.notifier.send_alert(f"You've wasted {total_minutes} minutes on break.")
             time_module.sleep(1)
 
         self.blocker.unblock_sites()

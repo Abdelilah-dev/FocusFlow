@@ -5,14 +5,14 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from datetime import datetime, timedelta
-from PySide6.QtCore import Qt, QTimer, QPoint, QSize, QSharedMemory
+from PySide6.QtCore import Qt, QTimer, QPoint, QSize, QSharedMemory, QVariantAnimation, QEasingCurve, QRectF, QPointF
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
-from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont, QFontDatabase
+from PySide6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont, QFontDatabase, QPen
 from PySide6 import QtSvg
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QFrame, QScrollArea, QSlider, QSystemTrayIcon, QMenu, QSizePolicy,
-    QStyle, QStyleOptionSlider
+    QStyle, QStyleOptionSlider, QGraphicsDropShadowEffect
 )
 from PySide6.QtGui import QAction
 from backend.timer import TaskState
@@ -675,9 +675,10 @@ class TaskCard(QFrame):
                 self.refuse_btn.hide()
         elif state == TaskState.BREAK:
             elapsed = self.runner.time_instance.break_elapsed_seconds
-            m = elapsed // 60
+            h = elapsed // 3600
+            m = (elapsed % 3600) // 60
             s = elapsed % 60
-            self.time_lbl.setText(f"{m:02d}:{s:02d}")
+            self.time_lbl.setText(f"{h:02d}:{m:02d}:{s:02d}")
             if self.stop_btn:
                 self.stop_btn.show()
             if self.done_btn:
@@ -801,6 +802,77 @@ class KanbanColumn(QFrame):
             self.cards_layout.insertWidget(self.cards_layout.count() - 1, self.cards[runner])
 
 
+class FocusRing(QFrame):
+    """جوج دوائر حوالين التايمر الكبير، كل وحدة فيها قوس ضوّي كيدور
+    بلا ما يوقف (فـ اتجاهين معاكسين)، باش الدوائر تبان كتحرك."""
+
+    def __init__(self, outer_diameter=260, inner_diameter=240, parent=None):
+        super().__init__(parent)
+        self._outer_d = outer_diameter
+        self._inner_d = inner_diameter
+        self.setFixedSize(outer_diameter, outer_diameter)
+        self.setStyleSheet("background: transparent; border: none;")
+
+        self._angle_outer = 0.0
+        self._angle_inner = 0.0
+        self._last_tick = None
+        self._timer = QTimer(self)
+        self._timer.setInterval(30)
+        self._timer.timeout.connect(self._advance)
+        self._timer.start()
+
+    def _advance(self):
+        import time as _time
+        now = _time.monotonic()
+        if self._last_tick is None:
+            self._last_tick = now
+        dt = now - self._last_tick
+        self._last_tick = now
+        self._angle_outer = (self._angle_outer + 24 * dt) % 360
+        self._angle_inner = (self._angle_inner - 40 * dt) % 360
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        cx = self.width() / 2.0
+        cy = self.height() / 2.0
+
+        # الدائرة الكبيرة - track ثابت
+        r_outer = self._outer_d / 2 - 2
+        pen = QPen(QColor(BORDER))
+        pen.setWidthF(3)
+        painter.setPen(pen)
+        painter.drawEllipse(QPointF(cx, cy), r_outer, r_outer)
+
+        # الدائرة الكبيرة - القوس اللي كيدور
+        pen = QPen(QColor(ACCENT))
+        pen.setWidthF(3)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        rect = QRectF(cx - r_outer, cy - r_outer, r_outer * 2, r_outer * 2)
+        painter.drawArc(rect, int(-self._angle_outer * 16), int(40 * 16))
+
+        # الدائرة الصغيرة - track ثابت
+        r_inner = self._inner_d / 2 - 1
+        pen = QPen(QColor(ACCENT))
+        pen.setWidthF(2)
+        painter.setPen(pen)
+        painter.drawEllipse(QPointF(cx, cy), r_inner, r_inner)
+
+        # الدائرة الصغيرة - القوس الأكثر سطوعا اللي كيدور بالعكس
+        pen = QPen(QColor(ACCENT_HOVER))
+        pen.setWidthF(4)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        rect = QRectF(cx - r_inner, cy - r_inner, r_inner * 2, r_inner * 2)
+        painter.drawArc(rect, int(-self._angle_inner * 16), int(55 * 16))
+
+        painter.end()
+
+
 class FocusPanel(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -856,28 +928,33 @@ class FocusPanel(QFrame):
                 """)
             tabs.addWidget(lbl)
 
+        self.tab_focus_glow = QGraphicsDropShadowEffect(self.tab_focus)
+        self.tab_focus_glow.setColor(QColor(ACCENT))
+        self.tab_focus_glow.setOffset(0, 0)
+        self.tab_focus_glow.setBlurRadius(0)
+        self.tab_focus.setGraphicsEffect(self.tab_focus_glow)
+
+        self.tab_break_glow = QGraphicsDropShadowEffect(self.tab_break)
+        self.tab_break_glow.setColor(QColor(ACCENT))
+        self.tab_break_glow.setOffset(0, 0)
+        self.tab_break_glow.setBlurRadius(0)
+        self.tab_break.setGraphicsEffect(self.tab_break_glow)
+
+        self._focus_tab_active = True
+
+        self.tab_glow_anim = QVariantAnimation(self)
+        self.tab_glow_anim.setDuration(1500)
+        self.tab_glow_anim.setStartValue(0.0)
+        self.tab_glow_anim.setKeyValueAt(0.5, 1.0)
+        self.tab_glow_anim.setEndValue(0.0)
+        self.tab_glow_anim.setEasingCurve(QEasingCurve.Type.InOutSine)
+        self.tab_glow_anim.setLoopCount(-1)
+        self.tab_glow_anim.valueChanged.connect(self._on_tab_glow)
+        self.tab_glow_anim.start()
+
         layout.addLayout(tabs)
 
-        circle_container = QFrame()
-        circle_container.setFixedSize(260, 260)
-        circle_container.setStyleSheet(f"""
-            QFrame {{
-                background-color: transparent;
-                border: 3px solid {BORDER};
-                border-radius: 130px;
-            }}
-        """)
-
-        inner_ring = QFrame(circle_container)
-        inner_ring.setFixedSize(240, 240)
-        inner_ring.move(10, 10)
-        inner_ring.setStyleSheet(f"""
-            QFrame {{
-                background-color: transparent;
-                border: 2px solid {ACCENT};
-                border-radius: 120px;
-            }}
-        """)
+        circle_container = FocusRing(260, 240)
 
         circle_layout = QVBoxLayout(circle_container)
         circle_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -886,6 +963,24 @@ class FocusPanel(QFrame):
         self.big_time = QLabel("__ : __")
         self.big_time.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.big_time.setStyleSheet(f"color: {TEXT_PRIMARY}; font-family: 'FreeSerif', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; font-size: 48px; font-weight: 300; background: transparent; border: none;")
+
+        self.big_time_glow = QGraphicsDropShadowEffect(self.big_time)
+        self.big_time_glow.setColor(QColor(ACCENT))
+        self.big_time_glow.setOffset(0, 0)
+        self.big_time_glow.setBlurRadius(0)
+        self.big_time.setGraphicsEffect(self.big_time_glow)
+
+        self.big_time_anim = QVariantAnimation(self)
+        self.big_time_anim.setDuration(1800)
+        self.big_time_anim.setStartValue(0.0)
+        self.big_time_anim.setKeyValueAt(0.5, 1.0)
+        self.big_time_anim.setEndValue(0.0)
+        self.big_time_anim.setEasingCurve(QEasingCurve.Type.InOutSine)
+        self.big_time_anim.setLoopCount(-1)
+        self.big_time_anim.valueChanged.connect(
+            lambda val: self.big_time_glow.setBlurRadius(4 + 16 * val)
+        )
+        self.big_time_anim.start()
 
         state_row = QHBoxLayout()
         state_row.setSpacing(6)
@@ -980,9 +1075,10 @@ class FocusPanel(QFrame):
             set_icon(self.play_btn, ICON_PAUSE, 26)
         elif state == TaskState.BREAK:
             elapsed = runner.time_instance.break_elapsed_seconds
-            m = elapsed // 60
+            h = elapsed // 3600
+            m = (elapsed % 3600) // 60
             s = elapsed % 60
-            self.big_time.setText(f"{m:02d}:{s:02d}")
+            self.big_time.setText(f"{h:02d}:{m:02d}:{s:02d}")
             self.focus_label.setText("BREAK")
             self.state_icon_lbl.hide()
             self._set_focus_mode(False)
@@ -996,6 +1092,7 @@ class FocusPanel(QFrame):
             set_icon(self.play_btn, ICON_PLAY, 26)
 
     def _set_focus_mode(self, is_focus):
+        self._focus_tab_active = is_focus
         if is_focus:
             self.tab_focus.setStyleSheet(f"""
                 QLabel {{
@@ -1045,6 +1142,15 @@ class FocusPanel(QFrame):
 
         self.progress_bars[0].setStyleSheet(f"background-color: {ACCENT if is_focus else BORDER}; border-radius: 2px;")
         self.progress_bars[1].setStyleSheet(f"background-color: {ACCENT if not is_focus else BORDER}; border-radius: 2px;")
+
+    def _on_tab_glow(self, val):
+        blur = 4 + 14 * val
+        if self._focus_tab_active:
+            self.tab_focus_glow.setBlurRadius(blur)
+            self.tab_break_glow.setBlurRadius(0)
+        else:
+            self.tab_break_glow.setBlurRadius(blur)
+            self.tab_focus_glow.setBlurRadius(0)
 
 
 class ClickToSeekSlider(QSlider):

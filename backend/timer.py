@@ -256,10 +256,9 @@ class Time:
         self._break_capped = bool(value)
 
     def tick_break(self):
-        """Break is count-up; auto-resume once it hits the 30-minute cap
-        (only for a live/manual break - not one restored after the app was closed)."""
-        if self._state == TaskState.BREAK and self._break_capped and self.break_time_spent >= self.MAX_BREAK_SECONDS:
-            self.resume_focus()
+        """Break is count-up with no maximum — it only ends when the user
+        manually resumes focus (via resume_focus/toggle_break)."""
+        pass
 
     def go_to_break(self):
         """Switch from IN_PROGRESS to BREAK. Finalize focus time."""
@@ -276,7 +275,6 @@ class Time:
         if self._state == TaskState.BREAK:
             if self._mode_start_time:
                 session = int((datetime.now() - self._mode_start_time).total_seconds())
-                session = min(session, self.MAX_BREAK_SECONDS)
                 self._break_time_spent += session
                 self._pending_break_delay += session
             self._state = TaskState.IN_PROGRESS
